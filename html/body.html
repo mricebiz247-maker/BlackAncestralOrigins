@@ -1,0 +1,183 @@
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-portrait" style="background-image:url('https://i.imgur.com/07Jjczy.png');" role="img" aria-label="Black Ancestral Origins Elder Portrait"></div>
+            <p class="splash-subtitle">Tracing the Roots of Black Indigenous Freedmen</p>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
+            </div>
+            <p class="splash-skip-hint">Tap anywhere to skip</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="https://i.imgur.com/9nZL5sz.jpeg" alt="BAO Logo" class="sidebar-logo-img">
+            </div>
+            <button id="sidebar-close" class="sidebar-close">&times;</button>
+        </div>
+        <div class="sidebar-user" id="sidebar-user">
+            <div class="user-avatar" id="user-avatar">?</div>
+            <div class="user-info">
+                <span class="user-name" id="user-display-name">Guest Researcher</span>
+                <span class="user-role">Genealogist</span>
+            </div>
+        </div>
+        <ul class="nav-list" id="nav-list">
+            <li class="nav-section-title">EXPLORE</li>
+            <li class="nav-item active" data-page="home">
+                <span class="nav-icon">&#127968;</span><span class="nav-label">Home</span>
+            </li>
+            <li class="nav-item" data-page="getting-started">
+                <span class="nav-icon">&#128218;</span><span class="nav-label">Getting Started</span>
+            </li>
+            <li class="nav-item" data-page="family-tree">
+                <span class="nav-icon">&#127795;</span><span class="nav-label">Family Tree</span>
+            </li>
+            <li class="nav-item" data-page="ancestor-profiles">
+                <span class="nav-icon">&#128100;</span><span class="nav-label">Ancestor Profiles</span>
+            </li>
+            <li class="nav-section-title">RECORDS</li>
+            <li class="nav-item" data-page="dawes-rolls">
+                <span class="nav-icon">&#128220;</span><span class="nav-label">Dawes Rolls</span>
+            </li>
+            <li class="nav-item" data-page="freedmen-records">
+                <span class="nav-icon">&#128240;</span><span class="nav-label">Freedmen Records</span>
+            </li>
+            <li class="nav-item" data-page="slave-schedules">
+                <span class="nav-icon">&#128214;</span><span class="nav-label">Tribal Census Records</span>
+            </li>
+            <li class="nav-item" data-page="land-allotments">
+                <span class="nav-icon">&#127757;</span><span class="nav-label">Land Allotments</span>
+            </li>
+            <li class="nav-section-title">HERITAGE</li>
+            <li class="nav-item" data-page="dna-heritage">
+                <span class="nav-icon">&#129516;</span><span class="nav-label">DNA &amp; Heritage</span>
+            </li>
+            <li class="nav-item" data-page="migration-routes">
+                <span class="nav-icon">&#128507;</span><span class="nav-label">Freedmen Migration Routes</span>
+            </li>
+            <li class="nav-item" data-page="historical-timeline">
+                <span class="nav-icon">&#9200;</span><span class="nav-label">Historical Timeline</span>
+            </li>
+            <li class="nav-item" data-page="name-origins">
+                <span class="nav-icon">&#128221;</span><span class="nav-label">Name Origins</span>
+            </li>
+            <li class="nav-section-title">PRESERVE</li>
+            <li class="nav-item" data-page="document-vault">
+                <span class="nav-icon">&#128451;</span><span class="nav-label">Document Vault</span>
+            </li>
+            <li class="nav-item" data-page="photo-gallery">
+                <span class="nav-icon">&#128247;</span><span class="nav-label">Historical Archive</span>
+            </li>
+            <li class="nav-item" data-page="oral-histories">
+                <span class="nav-icon">&#127908;</span><span class="nav-label">Oral Histories</span>
+            </li>
+            <li class="nav-section-title">CONNECT</li>
+            <li class="nav-item" data-page="community">
+                <span class="nav-icon">&#128101;</span><span class="nav-label">Community</span>
+            </li>
+            <li class="nav-item" data-page="resources">
+                <span class="nav-icon">&#128279;</span><span class="nav-label">Resource Library</span>
+            </li>
+            <li class="nav-item" data-page="video-learning">
+                <span class="nav-icon">&#127916;</span><span class="nav-label">Video Learning Center</span>
+            </li>
+            <li class="nav-item" data-page="settings">
+                <span class="nav-icon">&#9881;</span><span class="nav-label">Settings</span>
+            </li>
+            <li class="nav-item" data-page="about-project">
+                <span class="nav-icon">&#128188;</span><span class="nav-label">About This Project</span>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button id="menu-btn" class="menu-btn">
+                <span></span><span></span><span></span>
+            </button>
+            <button id="back-btn" class="back-btn" onclick="BAO_App.goBack()" title="Go Back" style="display:none;">&#10094;</button>
+            <a class="header-brand" onclick="BAO_App.navigate('home')" style="cursor:pointer">
+                <img src="https://i.imgur.com/9nZL5sz.jpeg" alt="BAO Logo" class="header-logo-img">
+            </a>
+            <h2 class="page-title" id="page-title">Home</h2>
+            <div class="top-bar-actions">
+                <button class="search-toggle" id="global-search-btn" title="Search">&#128269;</button>
+                <button class="notification-btn" id="notification-btn" title="Notifications">
+                    &#128276;<span class="notif-badge" id="notif-badge">3</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Global Search Overlay -->
+        <div id="search-overlay" class="search-overlay hidden">
+            <div class="search-container">
+                <input type="text" id="global-search-input" placeholder="Search ancestors, records, documents..." autocomplete="off">
+                <button id="search-close" class="search-close">&times;</button>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+
+        <!-- Notification Panel -->
+        <div id="notification-panel" class="notification-panel hidden">
+            <div class="notif-header">
+                <h3>Notifications</h3>
+                <button id="notif-clear">Clear All</button>
+            </div>
+            <div id="notif-list" class="notif-list"></div>
+        </div>
+
+        <!-- Page Container -->
+        <div id="page-container" class="page-container">
+            <!-- Pages rendered dynamically by JS -->
+        </div>
+    </main>
+
+    <!-- Modal System -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div id="modal-content" class="modal-content">
+            <button id="modal-close" class="modal-close">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav id="bottom-nav" class="bottom-nav">
+        <div class="bottom-nav-item active" data-page="home" onclick="BAO_App.navigate('home')">
+            <span class="bottom-nav-icon">&#127968;</span>
+            <span class="bottom-nav-label">Home</span>
+        </div>
+        <div class="bottom-nav-item" data-page="dawes-rolls" onclick="BAO_App.navigate('dawes-rolls')">
+            <span class="bottom-nav-icon">&#128220;</span>
+            <span class="bottom-nav-label">Records</span>
+        </div>
+        <div class="bottom-nav-item" data-page="family-tree" onclick="BAO_App.navigate('family-tree')">
+            <span class="bottom-nav-icon">&#127795;</span>
+            <span class="bottom-nav-label">Tree</span>
+        </div>
+        <div class="bottom-nav-item" data-page="historical-timeline" onclick="BAO_App.navigate('historical-timeline')">
+            <span class="bottom-nav-icon">&#9200;</span>
+            <span class="bottom-nav-label">Heritage</span>
+        </div>
+        <div class="bottom-nav-item" data-page="community" onclick="BAO_App.navigate('community')">
+            <span class="bottom-nav-icon">&#128101;</span>
+            <span class="bottom-nav-label">Community</span>
+        </div>
+        <div class="bottom-nav-item" data-page="settings" onclick="BAO_App.navigate('settings')">
+            <span class="bottom-nav-icon">&#9881;</span>
+            <span class="bottom-nav-label">Settings</span>
+        </div>
+    </nav>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
