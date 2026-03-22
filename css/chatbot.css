@@ -186,13 +186,13 @@
         bottom: 60px;
         width: 100%;
         max-width: 100%;
-        height: auto;
+        height: 75vh;
         max-height: calc(100vh - 120px);
         border-left: none;
         border-top: 2px solid rgba(255,184,48,0.35);
         border-radius: 20px 20px 0 0;
         box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
-        animation: none;
+        animation: chatSheetUp 0.25s ease;
     }
 }
 @keyframes chatSheetUp {
@@ -289,6 +289,7 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     padding: 12px 14px;
     display: flex;
     flex-direction: column;

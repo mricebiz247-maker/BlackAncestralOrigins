@@ -638,13 +638,16 @@ const BAO_Chatbot = {
         this.isOpen = !this.isOpen;
         const panel = document.getElementById('chat-panel');
         const wrapper = document.getElementById('chat-fab-wrapper');
+        const zoomCtrl = document.getElementById('zoom-controls');
         if (this.isOpen) {
             panel.classList.remove('hidden');
             if (wrapper) wrapper.classList.add('chat-open');
+            if (zoomCtrl) zoomCtrl.style.display = 'none';
             document.getElementById('chat-input')?.focus();
         } else {
             panel.classList.add('hidden');
             if (wrapper) wrapper.classList.remove('chat-open');
+            if (zoomCtrl) zoomCtrl.style.display = '';
         }
     },
 
