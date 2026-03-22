@@ -1257,8 +1257,8 @@ table th, table td {
 }
 @media (max-width: 768px) {
     #zoom-controls {
-        top: 76px;
-        right: 16px;
+        top: 220px;
+        right: 8px;
     }
 }
 
