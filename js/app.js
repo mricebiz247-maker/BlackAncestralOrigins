@@ -651,68 +651,42 @@ const BAO_App = {
     }
 };
 
-// ============== GLOBAL ZOOM SYSTEM ==============
+// ============== TEXT ZOOM (font-size based, accessibility-safe) ==============
+BAO_App._textZoom = 1;
+
+BAO_App.increaseTextSize = function() {
+    if (BAO_App._textZoom < 1.4) {
+        BAO_App._textZoom = Math.round((BAO_App._textZoom + 0.1) * 10) / 10;
+        BAO_App._applyTextZoom();
+    }
+};
+
+BAO_App.decreaseTextSize = function() {
+    if (BAO_App._textZoom > 0.8) {
+        BAO_App._textZoom = Math.round((BAO_App._textZoom - 0.1) * 10) / 10;
+        BAO_App._applyTextZoom();
+    }
+};
+
+BAO_App.resetTextSize = function() {
+    BAO_App._textZoom = 1;
+    BAO_App._applyTextZoom();
+};
+
+BAO_App._applyTextZoom = function() {
+    document.documentElement.style.fontSize = (16 * BAO_App._textZoom) + 'px';
+    try { localStorage.setItem('bao_textZoom', String(BAO_App._textZoom)); } catch(e) {}
+};
+
+BAO_App._loadTextZoom = function() {
+    try {
+        var saved = localStorage.getItem('bao_textZoom');
+        if (saved) { BAO_App._textZoom = parseFloat(saved) || 1; BAO_App._applyTextZoom(); }
+    } catch(e) {}
+};
+
+// ============== IMAGE ZOOM ==============
 var BAO_Zoom = {
-    level: 1,
-    min: 0.7,
-    max: 1.8,
-    step: 0.1,
-    target: null,
-
-    init: function() {
-        // Load saved zoom
-        try { this.level = parseFloat(localStorage.getItem('bao_zoom') || '1') || 1; } catch(e) { this.level = 1; }
-        this.target = document.getElementById('main-content');
-
-        // Create controls
-        var controls = document.createElement('div');
-        controls.id = 'bao-zoom-controls';
-        controls.className = 'bao-zoom-controls';
-        controls.innerHTML =
-            '<button class="bao-zoom-btn" onclick="BAO_Zoom.zoomIn()" title="Zoom In">+</button>' +
-            '<button class="bao-zoom-btn bao-zoom-label" onclick="BAO_Zoom.reset()" title="Reset Zoom" id="bao-zoom-pct">100%</button>' +
-            '<button class="bao-zoom-btn" onclick="BAO_Zoom.zoomOut()" title="Zoom Out">&minus;</button>';
-        document.body.appendChild(controls);
-
-        this.apply();
-    },
-
-    zoomIn: function() {
-        if (this.level < this.max) { this.level = Math.round((this.level + this.step) * 10) / 10; this.apply(); }
-    },
-
-    zoomOut: function() {
-        if (this.level > this.min) { this.level = Math.round((this.level - this.step) * 10) / 10; this.apply(); }
-    },
-
-    reset: function() {
-        this.level = 1;
-        this.apply();
-    },
-
-    apply: function() {
-        if (!this.target) this.target = document.getElementById('main-content');
-        if (!this.target) return;
-
-        if (this.level === 1) {
-            this.target.style.transform = '';
-            this.target.style.transformOrigin = '';
-            this.target.style.width = '';
-        } else {
-            this.target.style.transform = 'scale(' + this.level + ')';
-            this.target.style.transformOrigin = 'top left';
-            this.target.style.width = (100 / this.level) + '%';
-        }
-
-        // Update label
-        var label = document.getElementById('bao-zoom-pct');
-        if (label) label.textContent = Math.round(this.level * 100) + '%';
-
-        // Save preference
-        try { localStorage.setItem('bao_zoom', String(this.level)); } catch(e) {}
-    },
-
-    // ========== IMAGE ZOOM (double-tap + scroll wheel) ==========
     initImageZoom: function() {
         // Delegate — works on dynamically added images too
         document.addEventListener('dblclick', function(e) {
@@ -770,6 +744,6 @@ var BAO_Zoom = {
 // ============== INITIALIZE ON DOM READY ==============
 document.addEventListener('DOMContentLoaded', () => {
     BAO_App.init();
-    BAO_Zoom.init();
+    BAO_App._loadTextZoom();
     BAO_Zoom.initImageZoom();
 });

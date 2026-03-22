@@ -1162,9 +1162,20 @@ tr:hover td {
     .atl-scene { width: 180px; height: 240px; }
     .atl-canopy { width: 150px; height: 100px; }
     .atl-head { width: 75px; height: 92px; top: 58px; }
-    .page-container { padding: 12px; }
+    .page-container { padding: 12px; padding-bottom: 80px; }
     .card { padding: 14px; }
     .btn-lg { padding: 12px 20px; font-size: 0.9rem; }
+}
+
+/* ============== TABLE OVERFLOW FIX ============== */
+table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+table th, table td {
+    white-space: nowrap;
 }
 
 /* ============== GLOBAL DISCLAIMER ============== */
@@ -1179,63 +1190,45 @@ tr:hover td {
     opacity: 0.7;
 }
 
-/* ============== GLOBAL ZOOM CONTROLS ============== */
-.bao-zoom-controls {
+/* ============== TEXT ZOOM CONTROLS ============== */
+#zoom-controls {
     position: fixed;
-    top: 70px;
-    right: 12px;
-    z-index: 3000;
+    z-index: 9999;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    background: rgba(15,11,18,0.85);
-    border: 1px solid rgba(255,184,48,0.2);
-    border-radius: 10px;
-    padding: 4px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    gap: 6px;
 }
-.bao-zoom-btn {
-    width: 32px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    color: #FFB830;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
+#zoom-controls button {
+    background: #111;
+    color: #FFD700;
+    border: 1px solid #FFD700;
+    padding: 6px 10px;
     border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 700;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease;
 }
-.bao-zoom-btn:hover {
-    background: rgba(255,184,48,0.15);
+#zoom-controls button:hover {
+    background: rgba(255,215,0,0.15);
 }
-.bao-zoom-btn:active {
+#zoom-controls button:active {
     transform: scale(0.92);
 }
-.bao-zoom-label {
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    min-width: 32px;
-    text-align: center;
-}
-@media (max-width: 768px) {
-    .bao-zoom-controls {
-        top: auto;
-        bottom: 140px;
-        right: 8px;
-        flex-direction: row;
-        padding: 3px;
+@media (min-width: 768px) {
+    #zoom-controls {
+        top: 10px;
+        right: 120px;
     }
-    .bao-zoom-btn {
-        width: 30px;
-        height: 26px;
-        font-size: 0.9rem;
+}
+@media (max-width: 767px) {
+    #zoom-controls {
+        bottom: 90px;
+        left: 12px;
+    }
+    #zoom-controls button {
+        padding: 5px 8px;
+        font-size: 12px;
     }
 }
 
