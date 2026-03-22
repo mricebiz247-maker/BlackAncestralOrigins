@@ -1226,51 +1226,39 @@ table th, table td {
 
 /* ============== TEXT ZOOM CONTROLS ============== */
 #zoom-controls {
-    position: fixed !important;
-    top: calc(var(--top-bar-height, 60px) + 100px) !important;
-    right: 12px !important;
-    bottom: auto !important;
-    left: auto !important;
-    z-index: 9999 !important;
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 5;
     display: flex;
     gap: 6px;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.75);
     padding: 4px 6px;
     border-radius: 8px;
-    transition: top 0.2s ease;
-}
-/* When search input focused, push zoom down further */
-body:has(input:focus) #zoom-controls {
-    top: calc(var(--top-bar-height, 60px) + 120px) !important;
 }
 #zoom-controls button {
-    background: #111;
-    color: #FFD700;
-    border: 1px solid #FFD700;
-    padding: 6px 10px;
+    background: rgba(0,0,0,0.75);
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
+    min-width: 30px;
     cursor: pointer;
     font-weight: 700;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease;
 }
 #zoom-controls button:hover {
-    background: rgba(255,215,0,0.15);
+    background: rgba(212,175,55,0.15);
 }
 #zoom-controls button:active {
     transform: scale(0.92);
 }
 @media (max-width: 768px) {
     #zoom-controls {
-        top: calc(var(--top-bar-height, 60px) + 100px) !important;
-        right: 10px !important;
-        transform: scale(0.9);
-    }
-}
-@media (max-height: 700px) {
-    #zoom-controls {
-        top: calc(var(--top-bar-height, 60px) + 90px) !important;
+        top: 76px;
+        right: 16px;
     }
 }
 
