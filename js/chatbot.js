@@ -603,6 +603,25 @@ const BAO_Chatbot = {
             if (e.key === 'Enter') this.sendMessage();
         });
 
+        // Mobile keyboard: adjust input position
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                var panel = document.getElementById('chat-panel');
+                if (!panel || panel.classList.contains('hidden')) return;
+                var kbHeight = window.innerHeight - window.visualViewport.height;
+                if (kbHeight > 150) {
+                    panel.style.bottom = kbHeight + 'px';
+                } else {
+                    panel.style.bottom = '';
+                }
+            });
+        }
+
+        // Auto-scroll on input focus
+        document.getElementById('chat-input')?.addEventListener('focus', () => {
+            setTimeout(() => this.scrollToBottom(), 300);
+        });
+
         // Load stored name
         this.userName = localStorage.getItem('bao_user_name') || null;
 
