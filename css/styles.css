@@ -1193,6 +1193,10 @@ table th, table td {
 /* ============== TEXT ZOOM CONTROLS ============== */
 #zoom-controls {
     position: fixed;
+    top: 90px;
+    right: 12px;
+    bottom: auto;
+    left: auto;
     z-index: 9999;
     display: flex;
     gap: 6px;
@@ -1215,16 +1219,11 @@ table th, table td {
 #zoom-controls button:active {
     transform: scale(0.92);
 }
-@media (min-width: 768px) {
+@media (max-width: 768px) {
     #zoom-controls {
-        top: 10px;
-        right: 120px;
-    }
-}
-@media (max-width: 767px) {
-    #zoom-controls {
-        bottom: 90px;
-        left: 12px;
+        top: 95px;
+        right: 10px;
+        transform: scale(0.9);
     }
     #zoom-controls button {
         padding: 5px 8px;
