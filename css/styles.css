@@ -1217,7 +1217,7 @@ table th, table td {
 /* ============== TEXT ZOOM CONTROLS ============== */
 #zoom-controls {
     position: fixed !important;
-    top: calc(var(--top-bar-height, 60px) + 20px) !important;
+    top: calc(var(--top-bar-height, 60px) + 70px) !important;
     right: 12px !important;
     bottom: auto !important;
     left: auto !important;
@@ -1227,6 +1227,11 @@ table th, table td {
     background: rgba(0,0,0,0.4);
     padding: 4px 6px;
     border-radius: 8px;
+    transition: top 0.2s ease;
+}
+/* When search input focused, push zoom down further */
+body:has(input:focus) #zoom-controls {
+    top: calc(var(--top-bar-height, 60px) + 120px) !important;
 }
 #zoom-controls button {
     background: #111;
@@ -1248,18 +1253,14 @@ table th, table td {
 }
 @media (max-width: 768px) {
     #zoom-controls {
-        top: calc(var(--top-bar-height, 60px) + 15px) !important;
+        top: calc(var(--top-bar-height, 60px) + 70px) !important;
         right: 10px !important;
         transform: scale(0.9);
-    }
-    #zoom-controls button {
-        padding: 5px 8px;
-        font-size: 12px;
     }
 }
 @media (max-height: 700px) {
     #zoom-controls {
-        top: calc(var(--top-bar-height, 60px) + 5px) !important;
+        top: calc(var(--top-bar-height, 60px) + 90px) !important;
     }
 }
 
