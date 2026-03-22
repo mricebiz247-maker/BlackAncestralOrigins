@@ -564,9 +564,33 @@ a:hover { color: var(--accent-light); }
     width: 90%;
     max-width: 600px;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.search-nav-btn {
+    background: none;
+    border: 1px solid rgba(255,184,48,0.3);
+    border-radius: 8px;
+    color: var(--accent);
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.search-nav-btn:hover {
+    background: rgba(255,184,48,0.15);
 }
 .search-container input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     padding: 16px 50px 16px 20px;
     background: var(--bg-card);
     border: 2px solid var(--accent);
@@ -1192,14 +1216,17 @@ table th, table td {
 
 /* ============== TEXT ZOOM CONTROLS ============== */
 #zoom-controls {
-    position: fixed;
-    top: 90px;
-    right: 12px;
-    bottom: auto;
-    left: auto;
-    z-index: 9999;
+    position: fixed !important;
+    top: calc(var(--top-bar-height, 60px) + 20px) !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 9999 !important;
     display: flex;
     gap: 6px;
+    background: rgba(0,0,0,0.4);
+    padding: 4px 6px;
+    border-radius: 8px;
 }
 #zoom-controls button {
     background: #111;
@@ -1221,13 +1248,18 @@ table th, table td {
 }
 @media (max-width: 768px) {
     #zoom-controls {
-        top: 95px;
-        right: 10px;
+        top: calc(var(--top-bar-height, 60px) + 15px) !important;
+        right: 10px !important;
         transform: scale(0.9);
     }
     #zoom-controls button {
         padding: 5px 8px;
         font-size: 12px;
+    }
+}
+@media (max-height: 700px) {
+    #zoom-controls {
+        top: calc(var(--top-bar-height, 60px) + 5px) !important;
     }
 }
 
