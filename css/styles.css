@@ -553,8 +553,7 @@ a:hover { color: var(--accent-light); }
     position: fixed;
     inset: 0;
     z-index: 2000;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(8px);
+    background: #0a0710;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -591,7 +590,7 @@ a:hover { color: var(--accent-light); }
 .search-container input {
     flex: 1;
     min-width: 0;
-    padding: 16px 50px 16px 20px;
+    padding: 16px 20px;
     background: var(--bg-card);
     border: 2px solid var(--accent);
     border-radius: var(--radius-lg);
@@ -604,17 +603,28 @@ a:hover { color: var(--accent-light); }
     color: var(--text-muted);
 }
 .search-close {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
     background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.5rem;
+    border: 1px solid rgba(255,184,48,0.3);
+    border-radius: 8px;
+    color: var(--accent);
+    font-size: 1.3rem;
+    font-weight: 700;
+    width: 40px;
+    height: 40px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 4px;
+    transition: background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.search-close:hover {
+    background: rgba(255,184,48,0.15);
 }
 .search-results {
+    width: 100%;
     margin-top: 12px;
     background: var(--bg-card);
     border-radius: var(--radius-md);
