@@ -1224,42 +1224,12 @@ table th, table td {
     opacity: 0.7;
 }
 
-/* ============== TEXT ZOOM CONTROLS ============== */
+/* ============== ZOOM: Native pinch zoom enabled ============== */
 #zoom-controls {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 5;
-    display: flex;
-    gap: 6px;
-    background: rgba(0,0,0,0.75);
-    padding: 4px 6px;
-    border-radius: 8px;
+    display: none !important;
 }
-#zoom-controls button {
-    background: rgba(0,0,0,0.75);
-    color: #d4af37;
-    border: 1px solid #d4af37;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    min-width: 30px;
-    cursor: pointer;
-    font-weight: 700;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease;
-}
-#zoom-controls button:hover {
-    background: rgba(212,175,55,0.15);
-}
-#zoom-controls button:active {
-    transform: scale(0.92);
-}
-@media (max-width: 768px) {
-    #zoom-controls {
-        top: 220px;
-        right: 8px;
-    }
+input, textarea, select {
+    font-size: 16px;
 }
 
 /* ============== IMAGE ZOOM ============== */
