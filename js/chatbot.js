@@ -279,40 +279,100 @@ var BAO_SurnameIntel = {
         return found;
     },
 
-    // Build the structured response for a matched surname
-    buildResponse: function(surname, entry, dawesMatches) {
+    // Auto-enrich a surname entry with full structured fields
+    enrich: function(surname, entry) {
         var tribeList = entry.tribes || [];
         var tribeStr = tribeList.join(', ');
+
+        // Build regions from tribes
+        var tribeRegionMap = {
+            'Cherokee': 'Cherokee Nation (Northeast Oklahoma)',
+            'Choctaw': 'Choctaw Nation (Southeast Oklahoma)',
+            'Creek': 'Creek Nation (Central Oklahoma)',
+            'Chickasaw': 'Chickasaw Nation (South-central Oklahoma)',
+            'Seminole': 'Seminole Nation (Central Oklahoma)'
+        };
+        var regions = entry.regions || [];
+        if (regions.length === 0) {
+            regions = ['Oklahoma', 'Indian Territory'];
+            for (var t = 0; t < tribeList.length; t++) {
+                if (tribeRegionMap[tribeList[t]]) regions.push(tribeRegionMap[tribeList[t]]);
+            }
+        }
+
+        // Standard fields
+        var enriched = {
+            surname: surname,
+            aliases: entry.aliases || [],
+            category: entry.category || 'Indigenous Ancestry Research',
+            tribes: tribeList,
+            dawesEra: entry.dawesEra || false,
+            notes: entry.notes || '',
+            regions: regions,
+            recordTypes: entry.recordTypes || ['Census Records', 'Land and Allotment Records', 'Tribal Enrollment Records', 'Local and State Archives', 'Court and Probate Records'],
+            researchSteps: entry.researchSteps || [
+                'Search Dawes Rolls index for "' + surname + '" across ' + (tribeList.length > 0 ? tribeStr : 'all Five Tribes') + ' Freedmen rolls.',
+                'Check U.S. Census records (1870, 1880, 1900, 1910) for ' + surname + ' households in Indian Territory / Oklahoma.',
+                'Review Freedmen Bureau records (1865-1872) for labor contracts, marriage registers, and ration lists.',
+                'Request enrollment jackets from NARA Fort Worth (Record Group 75, Entry 7RA-46) for matched Dawes cards.',
+                tribeList.length > 0 ? 'Contact ' + tribeList[0] + ' Nation enrollment office for tribal-specific records.' : 'Contact tribal enrollment offices for any of the Five Civilized Tribes.'
+            ],
+            sourceSuggestions: entry.sourceSuggestions || [
+                'National Archives (NARA)',
+                'Bureau of Indian Affairs (BIA)',
+                'Oklahoma Historical Society',
+                'Library of Congress',
+                'Tribal Government Records'
+            ],
+            tags: entry.tags || ['Surname', 'Genealogy'],
+            researchSummary: entry.researchSummary || null
+        };
+
+        // Auto-generate researchSummary if not present
+        if (!enriched.researchSummary) {
+            enriched.researchSummary = 'The surname ' + surname + ' appears in records connected to the Five Civilized Tribes and Freedmen communities';
+            if (tribeList.length > 0) enriched.researchSummary += ', specifically within the ' + tribeStr + ' Nation' + (tribeList.length > 1 ? 's' : '');
+            enriched.researchSummary += '.';
+            if (entry.dawesEra) enriched.researchSummary += ' This surname is documented in the Dawes enrollment period (1898-1914).';
+            enriched.researchSummary += ' ' + (entry.notes || '');
+            enriched.researchSummary += ' Researchers should verify connections through specific first names, locations, relatives, and time periods rather than surname alone.';
+        }
+
+        return enriched;
+    },
+
+    // Build the structured response for a matched surname
+    buildResponse: function(surname, entry, dawesMatches) {
+        var e = this.enrich(surname, entry);
         var dawesCount = dawesMatches ? dawesMatches.length : 0;
 
-        var resp = '**Surname: ' + surname + '**\n\n';
+        var resp = '**Surname: ' + e.surname + '**\n\n';
 
         // Research Summary
         resp += '**Research Summary:**\n';
-        resp += 'The surname **' + surname + '** appears in records connected to the Five Civilized Tribes and Freedmen communities';
-        if (tribeList.length > 0) resp += ', specifically within the **' + tribeStr + '** Nation' + (tribeList.length > 1 ? 's' : '');
-        resp += '.';
-        if (entry.dawesEra) resp += ' This surname is documented in the Dawes enrollment period (1898-1914).';
-        resp += '\n\n';
-        if (entry.notes) resp += entry.notes + '\n\n';
+        resp += e.researchSummary + '\n\n';
         resp += 'A surname is a research clue, not final proof of tribal affiliation. Verification requires cross-referencing specific records with first names, relatives, locations, and time periods.\n\n';
 
         // Why This Surname Matters
         resp += '**Why This Surname Matters:**\n';
-        resp += '• ' + surname + ' is documented in ' + (tribeList.length > 0 ? tribeStr : 'Five Tribes') + ' Freedmen records\n';
-        if (entry.dawesEra) resp += '• Confirmed presence in the Dawes enrollment era (1898-1914)\n';
+        resp += '• Documented in ' + (e.tribes.length > 0 ? e.tribes.join(', ') : 'Five Tribes') + ' Freedmen records\n';
+        if (e.dawesEra) resp += '• Confirmed presence in the Dawes enrollment era (1898-1914)\n';
         resp += '• Can be cross-referenced with census, allotment, and tribal enrollment records\n';
+        if (e.regions.length > 2) resp += '• Research regions: ' + e.regions.slice(2).join(', ') + '\n';
         if (dawesCount > 0) resp += '• **' + dawesCount + ' matching record' + (dawesCount > 1 ? 's' : '') + '** found in this app\'s Dawes Rolls database\n';
         resp += '\n';
 
-        // Where to Research Next
-        resp += '**Where to Research Next:**\n';
-        resp += '• **Dawes Rolls Index** — Search for "' + surname + '" in Freedmen rolls' + (tribeList.length > 0 ? ' (' + tribeStr + ')' : '') + '\n';
-        resp += '• **National Archives (NARA)** — Request enrollment jackets (RG 75) from Fort Worth, TX\n';
-        resp += '• **U.S. Census (1870-1910)** — Search Indian Territory / Oklahoma for ' + surname + ' households\n';
-        resp += '• **Freedmen Bureau Records** — Check labor contracts and marriage registers (1865-1872)\n';
-        if (tribeList.length > 0) {
-            resp += '• **Tribal Records** — Contact ' + tribeList[0] + ' Nation enrollment office directly\n';
+        // How to Research
+        resp += '**How to Research:**\n';
+        for (var i = 0; i < e.researchSteps.length; i++) {
+            resp += '• ' + e.researchSteps[i] + '\n';
+        }
+        resp += '\n';
+
+        // Suggested Sources
+        resp += '**Suggested Sources:**\n';
+        for (var j = 0; j < e.sourceSuggestions.length; j++) {
+            resp += '• ' + e.sourceSuggestions[j] + '\n';
         }
 
         return resp;
@@ -334,11 +394,19 @@ var BAO_SurnameIntel = {
             resp += '\n';
         }
 
-        resp += '**Where to Research Next:**\n';
-        resp += '• **Dawes Rolls Index** — Search National Archives for "' + surname + '" across all Five Tribes\n';
-        resp += '• **U.S. Census (1870-1910)** — Search Indian Territory / Oklahoma\n';
-        resp += '• **Freedmen Bureau Records** — Check NARA or FamilySearch.org\n';
-        resp += '• **Tribal Census Rolls** — Pre-Dawes rolls from the 1880s-1890s\n';
+        resp += '**How to Research:**\n';
+        resp += '• Search Dawes Rolls index at the National Archives for "' + surname + '" across all Five Tribes.\n';
+        resp += '• Check U.S. Census records (1870-1910) for Indian Territory / Oklahoma.\n';
+        resp += '• Review Freedmen Bureau records at NARA or FamilySearch.org.\n';
+        resp += '• Examine tribal census rolls from the 1880s-1890s.\n';
+        resp += '• Contact tribal enrollment offices for each of the Five Civilized Tribes.\n\n';
+
+        resp += '**Suggested Sources:**\n';
+        resp += '• National Archives (NARA)\n';
+        resp += '• Bureau of Indian Affairs (BIA)\n';
+        resp += '• Oklahoma Historical Society\n';
+        resp += '• Library of Congress\n';
+        resp += '• Tribal Government Records\n';
 
         return resp;
     }
