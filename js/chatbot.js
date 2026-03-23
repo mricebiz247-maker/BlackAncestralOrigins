@@ -55,6 +55,11 @@ function detectIntent(input) {
         }
         if (score > bestScore) { bestScore = score; best = entry.intent; }
     }
+    // Cross-app surname detection: if any word matches a DB surname, route to surname intent
+    if (best === 'unknown' && typeof BAO_SurnameIntel !== 'undefined') {
+        var dbHits = BAO_SurnameIntel.scanForSurnames(q);
+        if (dbHits.length > 0) return 'surname';
+    }
     return best;
 }
 
@@ -208,6 +213,136 @@ function getExternalSources(intent) {
         return { title: s.title + ' (' + s.type + ')', url: s.url, verified: true, external: true };
     });
 }
+
+// ============== SURNAME INTELLIGENCE LAYER ==============
+var BAO_SurnameIntel = {
+    // Get the surname DB
+    _getDB: function() { return (typeof BAO_DATA !== 'undefined' && BAO_DATA.freedmenSurnames) ? BAO_DATA.freedmenSurnames : {}; },
+
+    // Exact match (case-insensitive)
+    exactMatch: function(input) {
+        var db = this._getDB();
+        var normalized = (input || '').trim();
+        for (var key in db) {
+            if (key.toLowerCase() === normalized.toLowerCase()) return { surname: key, entry: db[key] };
+        }
+        return null;
+    },
+
+    // Fuzzy match using Levenshtein distance
+    _levenshtein: function(a, b) {
+        a = a.toLowerCase(); b = b.toLowerCase();
+        if (a === b) return 0;
+        if (!a.length) return b.length;
+        if (!b.length) return a.length;
+        var matrix = [];
+        for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (i = 1; i <= b.length; i++) {
+            for (j = 1; j <= a.length; j++) {
+                matrix[i][j] = b[i-1] === a[j-1] ? matrix[i-1][j-1] : Math.min(matrix[i-1][j-1]+1, matrix[i][j-1]+1, matrix[i-1][j]+1);
+            }
+        }
+        return matrix[b.length][a.length];
+    },
+
+    // Find close matches (max distance 2)
+    fuzzyMatch: function(input, maxResults) {
+        var db = this._getDB();
+        var normalized = (input || '').trim().toLowerCase();
+        if (!normalized || normalized.length < 2) return [];
+        var candidates = [];
+        for (var key in db) {
+            var dist = this._levenshtein(normalized, key);
+            if (dist <= 2 && dist > 0) candidates.push({ surname: key, entry: db[key], distance: dist });
+        }
+        candidates.sort(function(a,b){ return a.distance - b.distance; });
+        return candidates.slice(0, maxResults || 3);
+    },
+
+    // Scan any text for surname matches from DB
+    scanForSurnames: function(text) {
+        var db = this._getDB();
+        var words = (text || '').split(/\s+/);
+        var found = [];
+        var seen = {};
+        for (var i = 0; i < words.length; i++) {
+            var w = words[i].replace(/[^a-zA-Z'-]/g, '');
+            if (w.length < 3) continue;
+            for (var key in db) {
+                if (key.toLowerCase() === w.toLowerCase() && !seen[key.toLowerCase()]) {
+                    seen[key.toLowerCase()] = true;
+                    found.push({ surname: key, entry: db[key] });
+                }
+            }
+        }
+        return found;
+    },
+
+    // Build the structured response for a matched surname
+    buildResponse: function(surname, entry, dawesMatches) {
+        var tribeList = entry.tribes || [];
+        var tribeStr = tribeList.join(', ');
+        var dawesCount = dawesMatches ? dawesMatches.length : 0;
+
+        var resp = '**Surname: ' + surname + '**\n\n';
+
+        // Research Summary
+        resp += '**Research Summary:**\n';
+        resp += 'The surname **' + surname + '** appears in records connected to the Five Civilized Tribes and Freedmen communities';
+        if (tribeList.length > 0) resp += ', specifically within the **' + tribeStr + '** Nation' + (tribeList.length > 1 ? 's' : '');
+        resp += '.';
+        if (entry.dawesEra) resp += ' This surname is documented in the Dawes enrollment period (1898-1914).';
+        resp += '\n\n';
+        if (entry.notes) resp += entry.notes + '\n\n';
+        resp += 'A surname is a research clue, not final proof of tribal affiliation. Verification requires cross-referencing specific records with first names, relatives, locations, and time periods.\n\n';
+
+        // Why This Surname Matters
+        resp += '**Why This Surname Matters:**\n';
+        resp += '• ' + surname + ' is documented in ' + (tribeList.length > 0 ? tribeStr : 'Five Tribes') + ' Freedmen records\n';
+        if (entry.dawesEra) resp += '• Confirmed presence in the Dawes enrollment era (1898-1914)\n';
+        resp += '• Can be cross-referenced with census, allotment, and tribal enrollment records\n';
+        if (dawesCount > 0) resp += '• **' + dawesCount + ' matching record' + (dawesCount > 1 ? 's' : '') + '** found in this app\'s Dawes Rolls database\n';
+        resp += '\n';
+
+        // Where to Research Next
+        resp += '**Where to Research Next:**\n';
+        resp += '• **Dawes Rolls Index** — Search for "' + surname + '" in Freedmen rolls' + (tribeList.length > 0 ? ' (' + tribeStr + ')' : '') + '\n';
+        resp += '• **National Archives (NARA)** — Request enrollment jackets (RG 75) from Fort Worth, TX\n';
+        resp += '• **U.S. Census (1870-1910)** — Search Indian Territory / Oklahoma for ' + surname + ' households\n';
+        resp += '• **Freedmen Bureau Records** — Check labor contracts and marriage registers (1865-1872)\n';
+        if (tribeList.length > 0) {
+            resp += '• **Tribal Records** — Contact ' + tribeList[0] + ' Nation enrollment office directly\n';
+        }
+
+        return resp;
+    },
+
+    // Build response for NOT FOUND surname with suggestions
+    buildNotFoundResponse: function(surname, suggestions) {
+        var resp = '**Surname: ' + surname + '**\n\n';
+        resp += '**Research Summary:**\n';
+        resp += 'The surname **' + surname + '** is not currently in this app\'s surname dataset. However, this does not mean the surname lacks connection to the Five Civilized Tribes or Freedmen records. The app contains a limited sample — broader records at the National Archives contain far more entries.\n\n';
+        resp += 'A surname alone does not confirm or deny tribal affiliation. Verification requires first names, relatives, location, and time period.\n\n';
+
+        if (suggestions && suggestions.length > 0) {
+            resp += '**Close Matches in Database:**\n';
+            for (var i = 0; i < suggestions.length; i++) {
+                var s = suggestions[i];
+                resp += '• **' + s.surname + '** — ' + s.entry.tribes.join(', ') + '\n';
+            }
+            resp += '\n';
+        }
+
+        resp += '**Where to Research Next:**\n';
+        resp += '• **Dawes Rolls Index** — Search National Archives for "' + surname + '" across all Five Tribes\n';
+        resp += '• **U.S. Census (1870-1910)** — Search Indian Territory / Oklahoma\n';
+        resp += '• **Freedmen Bureau Records** — Check NARA or FamilySearch.org\n';
+        resp += '• **Tribal Census Rolls** — Pre-Dawes rolls from the 1880s-1890s\n';
+
+        return resp;
+    }
+};
 
 // Format sources into HTML for bot message
 var BAO_DISCLAIMER_TEXT = 'Portfolio demonstration. Some data simulated for educational purposes.';
@@ -1334,39 +1469,33 @@ const BAO_Chatbot = {
                     fnMatchNote + followUp + srcHTML;
             case 'surname':
                 // Extract the surname from the query
-                var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name)\s+(\w+)/i);
-                var surname = surnameMatch ? surnameMatch[1].charAt(0).toUpperCase() + surnameMatch[1].slice(1).toLowerCase() : 'your surname';
-                var dawesCount = (BAO_DATA.dawesRolls || []).length;
-                // Check surname database first (case-insensitive)
-                var surnameDB = BAO_DATA.freedmenSurnames || {};
-                var dbEntry = null;
-                for (var _sk in surnameDB) {
-                    if (_sk.toLowerCase() === surname.toLowerCase()) { dbEntry = surnameDB[_sk]; break; }
-                }
-                // Also check Dawes rolls sample data
-                var dawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(surname.toLowerCase()) > -1; });
-                var matchNote = '';
-                if (dbEntry) {
-                    matchNote = '\n\n&#128269; **Database Match Found:**\n' +
-                        '• **Tribes:** ' + dbEntry.tribes.join(', ') + '\n' +
-                        '• **Dawes Era (1898-1914):** ' + (dbEntry.dawesEra ? 'Yes — documented in enrollment records' : 'Not confirmed') + '\n' +
-                        '• **Details:** ' + dbEntry.notes;
-                    if (dawesMatches.length > 0) {
-                        matchNote += '\n• **In-app records:** ' + dawesMatches.length + ' Dawes Roll entr' + (dawesMatches.length > 1 ? 'ies' : 'y') + ' found. Visit the Dawes Rolls page to view.';
+                var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name|about the name|about)\s+(\w[\w'-]*)/i);
+                var surname = surnameMatch ? surnameMatch[1].charAt(0).toUpperCase() + surnameMatch[1].slice(1).toLowerCase() : '';
+                // Fallback: grab last capitalized word from query
+                if (!surname || surname.length < 2) {
+                    var _words = (q || '').trim().split(/\s+/);
+                    for (var _wi = _words.length - 1; _wi >= 0; _wi--) {
+                        var _w = _words[_wi].replace(/[^a-zA-Z'-]/g, '');
+                        if (_w.length >= 3 && !/^(the|about|my|is|was|name|surname|last|family|tell|me|what|find|search|look)$/i.test(_w)) {
+                            surname = _w.charAt(0).toUpperCase() + _w.slice(1).toLowerCase();
+                            break;
+                        }
                     }
-                } else if (dawesMatches.length > 0) {
-                    matchNote = '\n\n&#128269; **Found in this app:** ' + dawesMatches.length + ' Dawes Roll record' + (dawesMatches.length > 1 ? 's' : '') + ' matching "' + surname + '". Visit the Dawes Rolls page to view them.';
-                } else {
-                    matchNote = '\n\n&#128270; No exact match in this app\'s local dataset (' + dawesCount + ' sample records), but broader historical records at the National Archives contain far more entries. A surname alone does not confirm or deny tribal affiliation — verification requires first names, relatives, location, and time period.';
                 }
-                return ctx + '**Surname Research: ' + surname + '**\n\n' +
-                    'The surname **' + surname + '** may appear in multiple historical records tied to the Five Civilized Tribes and Freedmen communities. In Freedmen genealogy, surnames were often taken from former slaveholders within the tribes — making them key identifiers in Dawes Roll enrollment records (1898-1914).\n\n' +
-                    '**How to research this surname:**\n' +
-                    '**1.** Search the Dawes Rolls index at the National Archives (NARA) for "' + surname + '" — filter by Freedmen rolls for all five tribes.\n' +
-                    '**2.** Check U.S. Census records (1870, 1880, 1900, 1910) for families with this surname in Indian Territory / Oklahoma.\n' +
-                    '**3.** Search Freedmen Bureau records (1865-1872) for labor contracts or marriage registers under "' + surname + '".\n' +
-                    '**4.** Review tribal census rolls from the 1880s-1890s for this name in Cherokee, Choctaw, Creek, Chickasaw, or Seminole districts.' +
-                    matchNote + followUp + srcHTML;
+                if (!surname) surname = 'your surname';
+
+                // Use Surname Intelligence Layer
+                var exactResult = BAO_SurnameIntel.exactMatch(surname);
+                var dawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(surname.toLowerCase()) > -1; });
+
+                if (exactResult) {
+                    // FOUND in DB — rich structured response
+                    return ctx + BAO_SurnameIntel.buildResponse(exactResult.surname, exactResult.entry, dawesMatches) + followUp + srcHTML;
+                } else {
+                    // NOT FOUND — fuzzy suggestions + research guidance
+                    var fuzzyResults = BAO_SurnameIntel.fuzzyMatch(surname, 3);
+                    return ctx + BAO_SurnameIntel.buildNotFoundResponse(surname, fuzzyResults) + followUp + srcHTML;
+                }
             case 'tribe_id':
                 return ctx + '**Identifying Your Tribal Connection**\n\n' +
                     'Determining your tribal affiliation requires tracing your ancestry back to someone enrolled in one of the Five Civilized Tribes. For Freedmen descendants, this means finding an ancestor on the **Dawes Freedmen Rolls (1898-1914)**.\n\n' +
