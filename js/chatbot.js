@@ -1292,7 +1292,7 @@ const BAO_Chatbot = {
 
     // ============== INTENT-BASED RESPONSE BUILDERS ==============
     _buildIntentResponse(intent, q, pageCtx, greet) {
-        var ctx = 'You\'re on ' + pageCtx + '. ';
+        var ctx = '';
         var res = BAO_DATA.resources || [];
         // Determine sub-intent for more precise source matching
         var sourceIntent = intent;
