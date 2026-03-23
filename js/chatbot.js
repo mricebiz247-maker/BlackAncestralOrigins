@@ -1337,11 +1337,28 @@ const BAO_Chatbot = {
                 var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name)\s+(\w+)/i);
                 var surname = surnameMatch ? surnameMatch[1].charAt(0).toUpperCase() + surnameMatch[1].slice(1).toLowerCase() : 'your surname';
                 var dawesCount = (BAO_DATA.dawesRolls || []).length;
-                // Check if surname exists in Dawes data
+                // Check surname database first (case-insensitive)
+                var surnameDB = BAO_DATA.freedmenSurnames || {};
+                var dbEntry = null;
+                for (var _sk in surnameDB) {
+                    if (_sk.toLowerCase() === surname.toLowerCase()) { dbEntry = surnameDB[_sk]; break; }
+                }
+                // Also check Dawes rolls sample data
                 var dawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(surname.toLowerCase()) > -1; });
-                var matchNote = dawesMatches.length > 0
-                    ? '\n\n&#128269; **Found in this app:** ' + dawesMatches.length + ' Dawes Roll record' + (dawesMatches.length > 1 ? 's' : '') + ' matching "' + surname + '". Visit the Dawes Rolls page to view them.'
-                    : '\n\n&#128270; No exact match was found in this app\'s limited local dataset (' + dawesCount + ' records), but broader historical records at the National Archives may still contain relevant entries. A surname alone does not confirm or deny tribal affiliation — verification requires first names, relatives, location, and time period.';
+                var matchNote = '';
+                if (dbEntry) {
+                    matchNote = '\n\n&#128269; **Database Match Found:**\n' +
+                        '• **Tribes:** ' + dbEntry.tribes.join(', ') + '\n' +
+                        '• **Dawes Era (1898-1914):** ' + (dbEntry.dawesEra ? 'Yes — documented in enrollment records' : 'Not confirmed') + '\n' +
+                        '• **Details:** ' + dbEntry.notes;
+                    if (dawesMatches.length > 0) {
+                        matchNote += '\n• **In-app records:** ' + dawesMatches.length + ' Dawes Roll entr' + (dawesMatches.length > 1 ? 'ies' : 'y') + ' found. Visit the Dawes Rolls page to view.';
+                    }
+                } else if (dawesMatches.length > 0) {
+                    matchNote = '\n\n&#128269; **Found in this app:** ' + dawesMatches.length + ' Dawes Roll record' + (dawesMatches.length > 1 ? 's' : '') + ' matching "' + surname + '". Visit the Dawes Rolls page to view them.';
+                } else {
+                    matchNote = '\n\n&#128270; No exact match in this app\'s local dataset (' + dawesCount + ' sample records), but broader historical records at the National Archives contain far more entries. A surname alone does not confirm or deny tribal affiliation — verification requires first names, relatives, location, and time period.';
+                }
                 return ctx + '**Surname Research: ' + surname + '**\n\n' +
                     'The surname **' + surname + '** may appear in multiple historical records tied to the Five Civilized Tribes and Freedmen communities. In Freedmen genealogy, surnames were often taken from former slaveholders within the tribes — making them key identifiers in Dawes Roll enrollment records (1898-1914).\n\n' +
                     '**How to research this surname:**\n' +
