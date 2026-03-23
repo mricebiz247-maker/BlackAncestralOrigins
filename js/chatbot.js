@@ -9,6 +9,17 @@ var appState = { currentPage: 'home' };
 // Primary intent detector — keywords ALWAYS take priority over page context
 function detectIntent(input) {
     var q = (input || '').toLowerCase();
+
+    // SURNAME LOOKUP — check first (highest priority per spec)
+    if (/(?:my (?:last |sur)?name is|surname|last name|family name)\s+\w/i.test(q)) {
+        return 'surname';
+    }
+
+    // TRIBE IDENTIFICATION — "what tribe", "which tribe", "am I from"
+    if (/what tribe|which tribe|am i from|my tribe|tribe am i|identify.+tribe/i.test(q)) {
+        return 'tribe_id';
+    }
+
     // Priority keywords checked first (most specific → least specific)
     var priorityMap = [
         { intent: 'freedmen', keywords: ['freedmen','freedman','freedwoman','freedpeople','freed people','freed men','freed women','black indigenous','five civilized tribes freedm'] },
@@ -62,6 +73,8 @@ function getPageContext() {
 // Intent-specific chip generators
 function getIntentChips(intent, page) {
     var chips = {
+        surname: ['Search Dawes Rolls', 'Freedmen records', 'U.S. Census records', 'Which tribe?'],
+        tribe_id: ['Cherokee Freedmen', 'Choctaw Freedmen', 'Creek Freedmen', 'Chickasaw Freedmen'],
         freedmen: ['Freedmen citizenship', 'Search Dawes Rolls', '1866 Treaties', 'Cherokee Freedmen rights'],
         citizenship: ['Cherokee enrollment', 'Choctaw Freedmen', 'Creek citizenship', 'Seminole Freedmen bands'],
         family_tree: ['Build family tree', 'Add ancestor', 'Robert Williams', 'View pedigree chart'],
@@ -83,6 +96,8 @@ function getRelevantSources(intent, page) {
     var res = (typeof BAO_DATA !== 'undefined' && BAO_DATA.resources) ? BAO_DATA.resources : [];
     // Map intents to resource category/keyword filters
     var filters = {
+        surname: function(r){ return r.category === 'Government' || (r.description && (/dawes|freedmen|census|surname|name|enrollment/i).test(r.title + ' ' + r.description)); },
+        tribe_id: function(r){ return r.category === 'Government' || (r.description && (/tribe|cherokee|choctaw|creek|chickasaw|seminole|five civilized/i).test(r.title + ' ' + r.description)); },
         freedmen: function(r){ return (r.description && (/freedmen|freedman|freed people|five civilized|dawes.*freedm|bureau.*freed/i).test(r.title + ' ' + r.description)) || r.category === 'Government'; },
         citizenship: function(r){ return r.description && (/citizen|enroll|treaty|1866|membership/i).test(r.title + ' ' + r.description); },
         dna: function(r){ return r.category === 'DNA' || (r.description && r.description.toLowerCase().indexOf('dna') > -1); },
@@ -136,6 +151,14 @@ function getRelevantSources(intent, page) {
 
 // External authoritative research sources (not in app resource library)
 var EXTERNAL_RESEARCH_SOURCES = {
+    surname: [
+        { title: 'National Archives — Dawes Rolls Index Search', url: 'https://www.archives.gov/research/native-americans/dawes', type: 'Government' },
+        { title: 'FamilySearch — Freedmen Surname Search', url: 'https://www.familysearch.org/search/collection/1541516', type: 'Nonprofit' }
+    ],
+    tribe_id: [
+        { title: 'Bureau of Indian Affairs — Tribal Directory', url: 'https://www.bia.gov/service/tribal-leaders-directory', type: 'Government' },
+        { title: 'Oklahoma Historical Society — Five Tribes', url: 'https://www.okhistory.org/publications/enc/entry?entry=FI011', type: 'Government' }
+    ],
     freedmen: [
         { title: 'National Archives — Freedmen Bureau Records', url: 'https://www.archives.gov/research/african-americans/freedmens-bureau', type: 'Government' },
         { title: 'Library of Congress — Reconstruction Era', url: 'https://www.loc.gov/classroom-materials/united-states-history-primary-source-timeline/rise-of-industrial-america-1876-1900/reconstruction/', type: 'Government' }
@@ -1135,6 +1158,18 @@ const BAO_Chatbot = {
     _getFollowUpQuestions(intent, q) {
         var ql = (q || '').toLowerCase();
         var questions = {
+            surname: [
+                'Is your family connected to Oklahoma, Indian Territory, or another region?',
+                'Do you have a first name or family member tied to this surname?',
+                'Do you know if this surname appears on the Dawes Rolls (1898-1914)?',
+                'Which tribe might your family be connected to — Cherokee, Choctaw, Creek, Chickasaw, or Seminole?'
+            ],
+            tribe_id: [
+                'Do you have a family surname that might appear in tribal records?',
+                'Is your family connected to Oklahoma or the southeastern United States?',
+                'Do you have any documentation — oral history, family papers, or DNA results?',
+                'Do you know if your ancestors were Freedmen (formerly enslaved by a tribe) or citizens by blood?'
+            ],
             freedmen: [
                 'Do you know which of the Five Civilized Tribes your ancestor was affiliated with?',
                 'Do you have a family surname to search on the Dawes Freedmen rolls?',
@@ -1220,6 +1255,38 @@ const BAO_Chatbot = {
         var srcHTML = formatSourcesHTML(allSources);
         var followUp = this._getFollowUpQuestions(intent, q);
         switch (intent) {
+            case 'surname':
+                // Extract the surname from the query
+                var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name)\s+(\w+)/i);
+                var surname = surnameMatch ? surnameMatch[1].charAt(0).toUpperCase() + surnameMatch[1].slice(1).toLowerCase() : 'your surname';
+                var dawesCount = (BAO_DATA.dawesRolls || []).length;
+                // Check if surname exists in Dawes data
+                var dawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(surname.toLowerCase()) > -1; });
+                var matchNote = dawesMatches.length > 0
+                    ? '\n\n&#128269; **Found in this app:** ' + dawesMatches.length + ' Dawes Roll record' + (dawesMatches.length > 1 ? 's' : '') + ' matching "' + surname + '". Visit the Dawes Rolls page to view them.'
+                    : '\n\n&#128270; No exact matches for "' + surname + '" in our ' + dawesCount + ' local Dawes records, but many more exist at the National Archives.';
+                return ctx + '**Surname Research: ' + surname + '**\n\n' +
+                    'The surname **' + surname + '** appears in both European American and African American records. In the context of Black Indigenous Freedmen genealogy, surnames were often taken from former slaveholders within the Five Civilized Tribes — making them key identifiers in Dawes Roll enrollment records (1898-1914).\n\n' +
+                    '**How to research this surname:**\n' +
+                    '**1.** Search the Dawes Rolls index at the National Archives (NARA) for "' + surname + '" — filter by Freedmen rolls for all five tribes.\n' +
+                    '**2.** Check U.S. Census records (1870, 1880, 1900, 1910) for families with this surname in Indian Territory / Oklahoma.\n' +
+                    '**3.** Search Freedmen Bureau records (1865-1872) for labor contracts or marriage registers under "' + surname + '".\n' +
+                    '**4.** Review tribal census rolls from the 1880s-1890s for this name in Cherokee, Choctaw, Creek, Chickasaw, or Seminole districts.' +
+                    matchNote + followUp + srcHTML;
+            case 'tribe_id':
+                return ctx + '**Identifying Your Tribal Connection**\n\n' +
+                    'Determining your tribal affiliation requires tracing your ancestry back to someone enrolled in one of the Five Civilized Tribes. For Freedmen descendants, this means finding an ancestor on the **Dawes Freedmen Rolls (1898-1914)**.\n\n' +
+                    '**Steps to identify your tribe:**\n' +
+                    '**1.** Start with your oldest known ancestor\'s location. The Five Tribes occupied distinct regions:\n' +
+                    '   • **Cherokee** — Northeast Oklahoma (Tahlequah area)\n' +
+                    '   • **Choctaw** — Southeast Oklahoma (Durant, Atoka)\n' +
+                    '   • **Creek (Muscogee)** — Central Oklahoma (Okmulgee)\n' +
+                    '   • **Chickasaw** — South-central Oklahoma (Tishomingo)\n' +
+                    '   • **Seminole** — Central Oklahoma (Wewoka)\n\n' +
+                    '**2.** Search the Dawes Rolls by your family surname across all five tribes.\n' +
+                    '**3.** Check U.S. Census records for Indian Territory (1900, 1910) — tribal district is listed.\n' +
+                    '**4.** Review family oral history — elders often passed down tribal connections.\n\n' +
+                    '&#128161; *DNA testing can suggest Indigenous ancestry but cannot identify a specific tribe. Paper records are essential for tribal identification.*' + followUp + srcHTML;
             case 'freedmen':
                 return ctx + '**Freedmen Research — Step-by-Step Guide**\n\n' +
                     'The Freedmen were formerly enslaved Black people held by the Five Civilized Tribes (Cherokee, Choctaw, Creek, Chickasaw, Seminole). After the Civil War, the **1866 Reconstruction Treaties** granted them citizenship rights.\n\n' +
