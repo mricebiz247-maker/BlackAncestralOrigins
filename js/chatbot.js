@@ -1131,6 +1131,78 @@ const BAO_Chatbot = {
         return this.defaultChips;
     },
 
+    // ============== FOLLOW-UP QUESTION GENERATOR ==============
+    _getFollowUpQuestions(intent, q) {
+        var ql = (q || '').toLowerCase();
+        var questions = {
+            freedmen: [
+                'Do you know which of the Five Civilized Tribes your ancestor was affiliated with?',
+                'Do you have a family surname to search on the Dawes Freedmen rolls?',
+                'Is your family connected to Oklahoma, Indian Territory, or another region?',
+                'Do you know if your ancestor was enrolled before or after 1898?'
+            ],
+            citizenship: [
+                'Have you already identified your Dawes Roll ancestor by name and card number?',
+                'Which tribe are you applying to — Cherokee, Choctaw, Creek, Chickasaw, or Seminole?',
+                'Do you have birth certificates and marriage records linking you to your Dawes enrollee?',
+                'Have you contacted the tribal enrollment office yet?'
+            ],
+            dna: [
+                'Have you already taken a DNA test, or are you deciding which company to use?',
+                'Are you looking for Indigenous American markers specifically, or general ancestry?',
+                'Do you have known relatives who could also test to strengthen your results?',
+                'Is your goal to support a tribal citizenship application, or personal heritage discovery?'
+            ],
+            records: [
+                'What family surname would you like to search in the Dawes Rolls?',
+                'Do you know the tribe and approximate time period (1890s, 1900s)?',
+                'Have you checked Freedmen Bureau records at FamilySearch.org or NARA yet?',
+                'Do you have a Dawes card number to cross-reference with land allotment records?'
+            ],
+            tree: [
+                'How far back can you trace your family — parents, grandparents, or further?',
+                'Do you have any names, birth dates, or locations for your earliest known ancestor?',
+                'Is your family connected to a specific tribe or Indian Territory district?',
+                'Have you added any ancestors to your family tree in the app yet?'
+            ],
+            migration: [
+                'Is your family connected to the Choctaw, Cherokee, Creek, Chickasaw, or Seminole removal?',
+                'Do you know if your ancestors traveled from the Southeast to Indian Territory?',
+                'Are you researching the Trail of Tears era (1830s) or the Great Migration (1910s-1940s)?',
+                'Do you have a known location in Oklahoma or Indian Territory to start from?'
+            ],
+            video: [
+                'Which topic interests you most — Dawes Rolls, tribal citizenship, DNA testing, or the 1866 Treaties?',
+                'Have you completed any of the 6 courses in the Video Learning Center yet?',
+                'Would you like me to recommend a course based on where you are in your research?'
+            ],
+            resources: [
+                'Are you looking for government archives, tribal websites, DNA services, or books?',
+                'What specific topic do you need resources for — Freedmen, Dawes Rolls, or tribal history?',
+                'Have you visited the National Archives (NARA) website or FamilySearch.org yet?'
+            ],
+            community: [
+                'Are you looking to connect with other Freedmen descendants researching specific tribes?',
+                'Would you like to share a discovery or ask the community a research question?',
+                'Have you found any records you want to discuss or verify with other researchers?'
+            ]
+        };
+        var pool = questions[intent] || questions.records;
+        // Pick 2-3 questions, avoiding ones already answered in the query
+        var selected = [];
+        for (var i = 0; i < pool.length && selected.length < 3; i++) {
+            var skip = false;
+            // Skip if query already mentions key terms from this question
+            if (ql.indexOf('cherokee') > -1 && pool[i].indexOf('Which tribe') > -1) skip = true;
+            if (ql.indexOf('choctaw') > -1 && pool[i].indexOf('Which tribe') > -1) skip = true;
+            if ((ql.indexOf('dawes') > -1 || ql.indexOf('card') > -1) && pool[i].indexOf('Dawes Roll ancestor') > -1) skip = true;
+            if (ql.indexOf('dna test') > -1 && pool[i].indexOf('already taken') > -1) skip = true;
+            if (!skip) selected.push(pool[i]);
+        }
+        if (selected.length === 0) selected = pool.slice(0, 2);
+        return '\n\n**To refine your research:**\n' + selected.map(function(q){ return '• ' + q; }).join('\n');
+    },
+
     // ============== INTENT-BASED RESPONSE BUILDERS ==============
     _buildIntentResponse(intent, q, pageCtx, greet) {
         var ctx = 'You\'re on ' + pageCtx + '. ';
@@ -1146,6 +1218,7 @@ const BAO_Chatbot = {
         var externalSources = getExternalSources(sourceIntent);
         var allSources = inAppSources.concat(externalSources);
         var srcHTML = formatSourcesHTML(allSources);
+        var followUp = this._getFollowUpQuestions(intent, q);
         switch (intent) {
             case 'freedmen':
                 return ctx + '**Freedmen Research — Step-by-Step Guide**\n\n' +
@@ -1155,7 +1228,7 @@ const BAO_Chatbot = {
                     '**3. Review Freedmen Bureau Records** — The Bureau of Refugees, Freedmen, and Abandoned Lands (1865-1872) created labor contracts, marriage registers, school records, and ration lists. Available at the National Archives (NARA) and FamilySearch.org.\n\n' +
                     '**4. Request Enrollment Jackets** — Contact NARA Fort Worth (Record Group 75) for the full application file behind each Dawes card. These contain testimony, family history, and supporting documents.\n\n' +
                     '**5. Understand Current Citizenship** — Cherokee Freedmen won full rights in the 2017 *Cherokee Nation v. Nash* ruling. Other tribes\' Freedmen descendants continue legal battles for recognition.\n\n' +
-                    '&#128161; *Start with Step 1. DNA alone cannot prove Freedmen heritage — paper records are essential. What tribe are you researching?*' + srcHTML;
+                    '&#128161; *Start with Step 1. DNA alone cannot prove Freedmen heritage — paper records are essential.*' + followUp + srcHTML;
             case 'citizenship':
                 return ctx + '**Tribal Citizenship — Step-by-Step Guide**\n\n' +
                     '**1. Identify Your Tribe** — Determine which of the Five Civilized Tribes your Freedmen ancestor belonged to (Cherokee, Choctaw, Creek, Chickasaw, or Seminole).\n\n' +
@@ -1163,7 +1236,7 @@ const BAO_Chatbot = {
                     '**3. Gather Required Documents** — Birth certificates, marriage records, and death certificates establishing the chain of descent from your Dawes enrollee to you.\n\n' +
                     '**4. Contact the Tribal Enrollment Office** — Cherokee: cherokee.org (full Freedmen rights). Creek: mcn-nsn.gov. Choctaw: choctawnation.com. Chickasaw: chickasaw.net. Seminole: sno-nsn.gov.\n\n' +
                     '**5. Submit Your Application** — Complete the tribal enrollment application with all supporting documentation. Processing times vary (3-12 months).\n\n' +
-                    '&#128161; *Start with Step 1. Cherokee Nation is currently the only tribe granting full citizenship to Freedmen descendants without blood quantum.*' + srcHTML;
+                    '&#128161; *Start with Step 1. Cherokee Nation is currently the only tribe granting full citizenship to Freedmen descendants without blood quantum.*' + followUp + srcHTML;
             case 'dna':
                 var dnaRes = res.filter(function(r){ return r.category === 'DNA'; });
                 return ctx + '**DNA Testing — Step-by-Step Guide**\n\n' +
@@ -1172,7 +1245,7 @@ const BAO_Chatbot = {
                     '**3. Take AncestryDNA Second** — Largest database (22M+ people). Look for "Indigenous Americas" in your ethnicity estimate and "Oklahoma Settlers" genetic community.\n\n' +
                     '**4. Interpret Your Results** — Many Freedmen descendants show 5-20% Indigenous American DNA reflecting generations of intermarriage in Indian Territory.\n\n' +
                     '**5. Combine DNA + Paper Records** — DNA supports but cannot prove tribal citizenship. Cross-reference genetic matches with Dawes Roll documentation for strongest evidence.\n\n' +
-                    '&#128161; *Start with Step 1. We have ' + dnaRes.length + ' verified DNA resources in the Resource Library.*' + srcHTML;
+                    '&#128161; *Start with Step 1. We have ' + dnaRes.length + ' verified DNA resources in the Resource Library.*' + followUp + srcHTML;
             case 'tree':
                 var _userAnc = (typeof BAO_Utils !== 'undefined') ? BAO_Utils.ancestors.getAll() : [];
                 var _sampleNames = Object.keys(this.family || {});
@@ -1197,7 +1270,7 @@ const BAO_Chatbot = {
                 } else {
                     _treeMsg = ctx + '**Family Tree**\n\nYour family tree will display documented ancestors as you add records. Start by searching the Dawes Rolls for your family surname, then add ancestors to build your tree.\n\n• Visit the **Family Tree** page to begin\n• Use **Ancestor Profiles** to add detailed records\n• Search **Dawes Rolls** to find enrolled ancestors';
                 }
-                return _treeMsg + srcHTML;
+                return _treeMsg + followUp + srcHTML;
             case 'records':
                 var dawes = (BAO_DATA.dawesRolls || []).length;
                 return ctx + '**Records Research — Step-by-Step Guide**\n\n' +
@@ -1206,14 +1279,14 @@ const BAO_Chatbot = {
                     '**3. Review Tribal Census Records** — Pre-Dawes census rolls (1880s-1890s) list family members, ages, and tribal districts. These can confirm presence in Indian Territory before Dawes enrollment.\n\n' +
                     '**4. Research Land Allotments** — After the Dawes Act, each enrolled member (including Freedmen) received a land allotment in Indian Territory. Cross-reference allotment records with Dawes card numbers for property documentation.\n\n' +
                     '**5. Request Enrollment Jackets** — NARA Fort Worth (Record Group 75, Entry 7RA-46) holds the full application file for each Dawes enrollee. These contain testimony, family statements, and supporting evidence.\n\n' +
-                    '&#128161; *Start with Step 1. What family surname would you like to search?*' + srcHTML;
+                    '&#128161; *Start with Step 1 — the Dawes Rolls are the foundation of all Freedmen genealogy research.*' + followUp + srcHTML;
             case 'video':
                 var courses = (BAO_DATA.videoSlideshows || []).length;
                 return ctx + 'The Video Learning Center has:\n\n' +
                     '• **' + courses + ' educational courses** with 48 total slides\n' +
                     '• Topics: Dawes Rolls, Five Tribes history, tribal citizenship, DNA testing, 1866 Treaties, Trail of Tears\n' +
                     '• Voice narration on every slide\n\n' +
-                    'Ready to start a course?' + srcHTML;
+                    'Ready to start a course?' + followUp + srcHTML;
             case 'resources':
                 return ctx + 'The Resource Library has **' + res.length + '+ verified resources**:\n\n' +
                     '• Government archives (National Archives, BIA)\n' +
@@ -1221,35 +1294,35 @@ const BAO_Chatbot = {
                     '• Books on Black Indigenous history\n' +
                     '• DNA testing services\n' +
                     '• Organizations and advocacy groups\n\n' +
-                    'Resources are ranked by authority with verified badges.' + srcHTML;
+                    'Resources are ranked by authority with verified badges.' + followUp + srcHTML;
             case 'migration':
                 return ctx + 'The Migration Routes map shows:\n\n' +
                     '• **7 animated gold routes** from the Southeast to Indian Territory\n' +
                     '• **Waypoint markers** with historical popups\n' +
                     '• The Trail of Tears paths for all Five Tribes\n' +
                     '• Freedmen migration patterns to Oklahoma\n\n' +
-                    'Tap any waypoint on the map for historical details.' + srcHTML;
+                    'Tap any waypoint on the map for historical details.' + followUp + srcHTML;
             case 'community':
                 return ctx + 'The Community page includes:\n\n' +
                     '• **Discussion posts** with tribe tags and replies\n' +
                     '• **Discoveries** shared by other researchers\n' +
                     '• **Research tips** from experienced genealogists\n' +
                     '• **Rights & advocacy** updates for Freedmen descendants\n\n' +
-                    'Connect with other descendants researching their heritage.' + srcHTML;
+                    'Connect with other descendants researching their heritage.' + followUp + srcHTML;
             case 'chatbot':
                 return ctx + 'I\'m Roots AI Guide — here\'s what I can do:\n\n' +
                     '• **56 research topics** across Freedmen genealogy\n' +
                     '• **Navigate any page** — just say "go to" + page name\n' +
                     '• **Track your progress** through 15 research milestones\n' +
                     '• **Generate tribal checklists** for each nation\n\n' +
-                    'Say "Quick Start Guide" for a full walkthrough.' + srcHTML;
+                    'Say "Quick Start Guide" for a full walkthrough.' + followUp + srcHTML;
             default:
                 return ctx + 'I can help you with specific genealogy research. To give you the most accurate guidance, could you share:\n\n' +
                     '• **What family surname** are you researching?\n' +
                     '• **Which tribe** (Cherokee, Choctaw, Creek, Chickasaw, or Seminole)?\n' +
                     '• **What time period** (e.g., 1890s, early 1900s)?\n' +
                     '• **What location** (state or Indian Territory district)?\n\n' +
-                    'The more details you provide, the more specific my guidance will be. I never fabricate records or historical facts — I\'ll point you to verified sources.' + srcHTML;
+                    'The more details you provide, the more specific my guidance will be. I never fabricate records or historical facts — I\'ll point you to verified sources.' + followUp + srcHTML;
         }
     },
 
