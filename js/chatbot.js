@@ -10,7 +10,19 @@ var appState = { currentPage: 'home' };
 function detectIntent(input) {
     var q = (input || '').toLowerCase();
 
-    // SURNAME LOOKUP — check first (highest priority per spec)
+    // FULL NAME DETECTION — "Michael Wilson", "search John Brown", "find Sarah Johnson"
+    // Two capitalized words that look like a person's name (not a command)
+    var fullNameMatch = q.match(/^(?:search|find|look up|lookup)?\s*([a-z]+)\s+([a-z]+)$/);
+    if (fullNameMatch && !/^(?:go to|open |show |tell |what |how |help|my |the |is |do |can )/.test(q)) {
+        // Check it's not a two-word command — both words must be name-like (3+ chars, no keywords)
+        var w1 = fullNameMatch[1], w2 = fullNameMatch[2];
+        var commandWords = ['the','for','me','you','about','this','that','page','help','more','all','new','get','set','add','how','can','does','will'];
+        if (w1.length >= 2 && w2.length >= 2 && commandWords.indexOf(w1) === -1 && commandWords.indexOf(w2) === -1) {
+            return 'fullname';
+        }
+    }
+
+    // SURNAME LOOKUP — "my last name is X", "surname X"
     if (/(?:my (?:last |sur)?name is|surname|last name|family name)\s+\w/i.test(q)) {
         return 'surname';
     }
@@ -73,6 +85,7 @@ function getPageContext() {
 // Intent-specific chip generators
 function getIntentChips(intent, page) {
     var chips = {
+        fullname: ['Search Dawes Rolls', 'Freedmen Bureau records', 'U.S. Census 1900', 'Enrollment jackets'],
         surname: ['Search Dawes Rolls', 'Freedmen records', 'U.S. Census records', 'Which tribe?'],
         tribe_id: ['Cherokee Freedmen', 'Choctaw Freedmen', 'Creek Freedmen', 'Chickasaw Freedmen'],
         freedmen: ['Freedmen citizenship', 'Search Dawes Rolls', '1866 Treaties', 'Cherokee Freedmen rights'],
@@ -96,6 +109,7 @@ function getRelevantSources(intent, page) {
     var res = (typeof BAO_DATA !== 'undefined' && BAO_DATA.resources) ? BAO_DATA.resources : [];
     // Map intents to resource category/keyword filters
     var filters = {
+        fullname: function(r){ return r.category === 'Government' || (r.description && (/dawes|freedmen|census|enrollment|name/i).test(r.title + ' ' + r.description)); },
         surname: function(r){ return r.category === 'Government' || (r.description && (/dawes|freedmen|census|surname|name|enrollment/i).test(r.title + ' ' + r.description)); },
         tribe_id: function(r){ return r.category === 'Government' || (r.description && (/tribe|cherokee|choctaw|creek|chickasaw|seminole|five civilized/i).test(r.title + ' ' + r.description)); },
         freedmen: function(r){ return (r.description && (/freedmen|freedman|freed people|five civilized|dawes.*freedm|bureau.*freed/i).test(r.title + ' ' + r.description)) || r.category === 'Government'; },
@@ -151,6 +165,10 @@ function getRelevantSources(intent, page) {
 
 // External authoritative research sources (not in app resource library)
 var EXTERNAL_RESEARCH_SOURCES = {
+    fullname: [
+        { title: 'National Archives — Dawes Rolls Index', url: 'https://www.archives.gov/research/native-americans/dawes', type: 'Government' },
+        { title: 'FamilySearch — Five Tribes Records', url: 'https://www.familysearch.org/search/collection/1541516', type: 'Nonprofit' }
+    ],
     surname: [
         { title: 'National Archives — Dawes Rolls Index Search', url: 'https://www.archives.gov/research/native-americans/dawes', type: 'Government' },
         { title: 'FamilySearch — Freedmen Surname Search', url: 'https://www.familysearch.org/search/collection/1541516', type: 'Nonprofit' }
@@ -875,9 +893,9 @@ const BAO_Chatbot = {
         // 0b4. Check research progress triggers (runs silently, acknowledgment added after response)
         this._pendingStepNotice = this.checkResearchProgress(q);
 
-        // 0c. Handle name change mid-conversation
-        var nameChangeMatch = q.match(/^(?:my name is|i'm|im|i am|call me|they call me)\s+([a-zA-Z'-]+)/);
-        if (nameChangeMatch) {
+        // 0c. Handle name change mid-conversation (single word only — two words = genealogy search)
+        var nameChangeMatch = q.match(/^(?:my name is|i'm|im|i am|call me|they call me)\s+([a-zA-Z'-]+)$/);
+        if (nameChangeMatch && nameChangeMatch[1].indexOf(' ') === -1) {
             var newName = nameChangeMatch[1].charAt(0).toUpperCase() + nameChangeMatch[1].slice(1).toLowerCase();
             this.userName = newName;
             localStorage.setItem('bao_user_name', newName);
@@ -1158,6 +1176,12 @@ const BAO_Chatbot = {
     _getFollowUpQuestions(intent, q) {
         var ql = (q || '').toLowerCase();
         var questions = {
+            fullname: [
+                'Do you know which of the Five Civilized Tribes this person was affiliated with?',
+                'What location is this person connected to — Oklahoma, Indian Territory, or another region?',
+                'Do you know a birth year or approximate time period (pre-1866, Dawes era 1898-1914)?',
+                'Do you have any known relatives — parents or grandparents — for this individual?'
+            ],
             surname: [
                 'Is your family connected to Oklahoma, Indian Territory, or another region?',
                 'Do you have a first name or family member tied to this surname?',
@@ -1255,6 +1279,31 @@ const BAO_Chatbot = {
         var srcHTML = formatSourcesHTML(allSources);
         var followUp = this._getFollowUpQuestions(intent, q);
         switch (intent) {
+            case 'fullname':
+                // Extract first + last name
+                var fnMatch = (q || '').replace(/^(?:search|find|look up|lookup)\s*/i, '').trim().split(/\s+/);
+                var firstName = fnMatch[0] ? fnMatch[0].charAt(0).toUpperCase() + fnMatch[0].slice(1).toLowerCase() : '';
+                var lastName = fnMatch[1] ? fnMatch[1].charAt(0).toUpperCase() + fnMatch[1].slice(1).toLowerCase() : '';
+                var fullName = firstName + ' ' + lastName;
+                var fnDawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){
+                    if (!r.name) return false;
+                    var n = r.name.toLowerCase();
+                    return n.indexOf(firstName.toLowerCase()) > -1 && n.indexOf(lastName.toLowerCase()) > -1;
+                });
+                var fnSurnameMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(lastName.toLowerCase()) > -1; });
+                var fnMatchNote = fnDawesMatches.length > 0
+                    ? '\n\n&#128269; **Found in this app:** ' + fnDawesMatches.length + ' Dawes Roll record' + (fnDawesMatches.length > 1 ? 's' : '') + ' matching "' + fullName + '". Visit the Dawes Rolls page to view.'
+                    : (fnSurnameMatches.length > 0
+                        ? '\n\n&#128270; No exact full-name match for "' + fullName + '", but **' + fnSurnameMatches.length + ' records match the surname "' + lastName + '"**. A full-name search across the National Archives may yield additional results.'
+                        : '\n\n&#128270; No match in this app\'s limited local dataset. Broader records at the National Archives, FamilySearch, and tribal enrollment offices should be checked — local data alone does not confirm or deny any connection.');
+                return ctx + '**Individual Search: ' + fullName + '**\n\n' +
+                    'A full name provides significantly higher search accuracy than a surname alone. Here is how to research **' + fullName + '** across historical records:\n\n' +
+                    '**1. Dawes Rolls (1898-1914)** — Search for "' + fullName + '" across all Five Tribes Freedmen rolls. The Dawes cards contain full name, age, tribal affiliation, family members, and roll number.\n\n' +
+                    '**2. U.S. Census (1870-1910)** — Search for "' + firstName + ' ' + lastName + '" in Indian Territory and Oklahoma. The 1900 and 1910 censuses list tribal district, making them critical for Freedmen research.\n\n' +
+                    '**3. Freedmen Bureau Records (1865-1872)** — Search labor contracts, marriage registers, and ration lists at NARA or FamilySearch.org for this name.\n\n' +
+                    '**4. Enrollment Jackets** — If a Dawes match is found, request the full enrollment jacket from NARA Fort Worth (Record Group 75, Entry 7RA-46). These contain testimony, family statements, and supporting documentation.\n\n' +
+                    '**5. Tribal Census Rolls (1880s-1890s)** — Pre-Dawes census rolls may list "' + fullName + '" in a specific tribal district, confirming presence before formal enrollment.' +
+                    fnMatchNote + followUp + srcHTML;
             case 'surname':
                 // Extract the surname from the query
                 var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name)\s+(\w+)/i);
