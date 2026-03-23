@@ -555,6 +555,26 @@ const BAO_DATA = {
         'Beal': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation records. Also check variant Bealand.' },
         'Beanland': { tribes: ['Creek', 'Choctaw'], dawesEra: true, notes: 'Found in Creek and Choctaw Freedmen records. Also check variant Bealand.' },
         'Blakeman': { tribes: ['Creek', 'Cherokee'], dawesEra: true, notes: 'Found in Creek and Cherokee records. Also check variant Blackman.' },
-        'Broome': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Check Freedmen enrollment cards for both tribes.' }
+        'Broome': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Check Freedmen enrollment cards for both tribes.' },
+        'Coody': { tribes: ['Cherokee'], dawesEra: true, notes: 'Prominent Cherokee family name. Multiple Coody entries on Cherokee rolls. Cross-reference with Cherokee Freedmen cards.' },
+        'Cooper': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Common surname across multiple tribes. Extensive Cooper entries in Freedmen rolls for Cherokee, Creek, and Choctaw Nations.' },
+        'Crafton': { tribes: ['Choctaw'], dawesEra: true, notes: 'Found in Choctaw Nation Freedmen records. Check Choctaw enrollment jackets at NARA Fort Worth.' },
+        'Coil': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation records. Cross-reference with Creek Freedmen enrollment cards.' },
+        'Fiels': { tribes: ['Cherokee'], dawesEra: true, notes: 'Appears in Cherokee Nation records. May be variant of Fields — check both spellings in Dawes index.' },
+        'Fiscks': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek Nation Freedmen records. Also check variant spellings Fisk, Fisks.' },
+        'Freiek': { tribes: ['Choctaw'], dawesEra: true, notes: 'Found in Choctaw Nation records. Less common spelling — check Choctaw Freedmen enrollment cards and variant spellings.' },
+        'Frances': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Also check variant Francis in Freedmen rolls.' },
+        'Furkes': { tribes: ['Chickasaw'], dawesEra: true, notes: 'Found in Chickasaw Nation Freedmen records. Also check variant Forks, Furks.' },
+        'Croion': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation records. Uncommon spelling — check Creek Freedmen cards and variant spellings.' },
+        'Cutts': { tribes: ['Cherokee'], dawesEra: true, notes: 'Appears in Cherokee Nation Freedmen records. Cross-reference with Cherokee enrollment jackets.' },
+        'Dalton': { tribes: ['Cherokee', 'Choctaw'], dawesEra: true, notes: 'Documented in Cherokee and Choctaw Nations. Check Freedmen rolls for both tribes.' },
+        'Daniels': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Common surname across multiple tribes. Multiple Daniels families enrolled as Freedmen.' },
+        'Darby': { tribes: ['Creek', 'Seminole'], dawesEra: true, notes: 'Found in Creek and Seminole Nation Freedmen records. Check both tribal enrollment cards.' },
+        'Darnell': { tribes: ['Cherokee'], dawesEra: true, notes: 'Appears in Cherokee Nation records. Check Cherokee Freedmen Dawes cards and enrollment jackets.' },
+        'Diggs': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Check Freedmen rolls for both tribes.' },
+        'Dream': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation Freedmen records. Distinctive surname — may be easier to trace.' },
+        'Doolie': { tribes: ['Choctaw'], dawesEra: true, notes: 'Found in Choctaw Nation records. Also check variant Dooley in Choctaw Freedmen rolls.' },
+        'Edwards': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Common surname across multiple tribes. Extensive Edwards entries in Freedmen enrollment records.' },
+        'Ezel': { tribes: ['Creek', 'Cherokee'], dawesEra: true, notes: 'Found in Creek and Cherokee Freedmen records. Also check variant Ezell, Ezel.' }
     }
 };
