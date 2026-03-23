@@ -134,6 +134,40 @@ function getRelevantSources(intent, page) {
     return unique.slice(0, 3);
 }
 
+// External authoritative research sources (not in app resource library)
+var EXTERNAL_RESEARCH_SOURCES = {
+    freedmen: [
+        { title: 'National Archives — Freedmen Bureau Records', url: 'https://www.archives.gov/research/african-americans/freedmens-bureau', type: 'Government' },
+        { title: 'Library of Congress — Reconstruction Era', url: 'https://www.loc.gov/classroom-materials/united-states-history-primary-source-timeline/rise-of-industrial-america-1876-1900/reconstruction/', type: 'Government' }
+    ],
+    records: [
+        { title: 'National Archives — Dawes Records', url: 'https://www.archives.gov/research/native-americans/dawes', type: 'Government' },
+        { title: 'NARA Fort Worth — Indian Territory Records (RG 75)', url: 'https://www.archives.gov/fort-worth', type: 'Government' }
+    ],
+    citizenship: [
+        { title: 'Bureau of Indian Affairs — Tribal Leaders Directory', url: 'https://www.bia.gov/service/tribal-leaders-directory', type: 'Government' },
+        { title: 'Cherokee Nation — Freedmen Citizenship', url: 'https://www.cherokee.org/all-services/tribal-registration/', type: 'Tribal' }
+    ],
+    dna: [
+        { title: 'ISOGG — DNA Testing Comparison Chart', url: 'https://isogg.org/wiki/Autosomal_DNA_testing_comparison_chart', type: 'Research' },
+        { title: 'Smithsonian — African American DNA', url: 'https://nmaahc.si.edu/explore/initiatives/genealogy', type: 'Government' }
+    ],
+    tree: [
+        { title: 'FamilySearch — Free Genealogy Records', url: 'https://www.familysearch.org', type: 'Nonprofit' },
+        { title: 'Library of Congress — Genealogy Research', url: 'https://www.loc.gov/rr/genealogy/', type: 'Government' }
+    ],
+    migration: [
+        { title: 'Oklahoma Historical Society — Indian Removal', url: 'https://www.okhistory.org/publications/enc/entry?entry=IN014', type: 'Government' },
+        { title: 'National Park Service — Trail of Tears', url: 'https://www.nps.gov/trte/index.htm', type: 'Government' }
+    ]
+};
+
+function getExternalSources(intent) {
+    return (EXTERNAL_RESEARCH_SOURCES[intent] || []).map(function(s) {
+        return { title: s.title + ' (' + s.type + ')', url: s.url, verified: true, external: true };
+    });
+}
+
 // Format sources into HTML for bot message
 var BAO_DISCLAIMER_TEXT = 'Portfolio demonstration. Some data simulated for educational purposes.';
 function formatSourcesHTML(sources) {
@@ -141,10 +175,20 @@ function formatSourcesHTML(sources) {
     if (!sources || sources.length === 0) {
         return '\n\n---\n&#128279; **Verified Sources**\nNo direct sources found. Explore the <span style="color:#FFB830;cursor:pointer;text-decoration:underline" onclick="BAO_App.navigate(\'resources\')">Resource Library</span> for verified records.' + disclaimer;
     }
+    var inApp = sources.filter(function(s){ return !s.external; });
+    var external = sources.filter(function(s){ return s.external; });
     var html = '\n\n---\n&#128279; **Verified Sources**';
-    for (var i = 0; i < sources.length; i++) {
-        var s = sources[i];
-        html += '\n• <a href="' + s.url + '" target="_blank" rel="noopener" style="color:#FFB830;text-decoration:underline;">' + s.title + '</a>' + (s.verified !== false ? ' &#10003;' : '');
+    if (inApp.length > 0) {
+        html += '\n**In-App Resources:**';
+        for (var i = 0; i < inApp.length; i++) {
+            html += '\n• <a href="' + inApp[i].url + '" target="_blank" rel="noopener" style="color:#FFB830;text-decoration:underline;">' + inApp[i].title + '</a> &#10003;';
+        }
+    }
+    if (external.length > 0) {
+        html += '\n**External Research:**';
+        for (var j = 0; j < external.length; j++) {
+            html += '\n• <a href="' + external[j].url + '" target="_blank" rel="noopener" style="color:#FFB830;text-decoration:underline;">' + external[j].title + '</a> &#10003;';
+        }
     }
     return html + disclaimer;
 }
@@ -1098,18 +1142,20 @@ const BAO_Chatbot = {
             if (ql.indexOf('family tree') > -1 || ql.indexOf('build') > -1 || ql.indexOf('pedigree') > -1) sourceIntent = 'family_tree';
             else if (ql.indexOf('ancestor') > -1 || ql.indexOf('lineage') > -1) sourceIntent = 'ancestors';
         }
-        var sources = getRelevantSources(sourceIntent, appState.currentPage);
-        var srcHTML = formatSourcesHTML(sources);
+        var inAppSources = getRelevantSources(sourceIntent, appState.currentPage);
+        var externalSources = getExternalSources(sourceIntent);
+        var allSources = inAppSources.concat(externalSources);
+        var srcHTML = formatSourcesHTML(allSources);
         switch (intent) {
             case 'freedmen':
                 return ctx + '**Freedmen Research — Step-by-Step Guide**\n\n' +
-                    'The Freedmen were formerly enslaved Black people held by the Five Civilized Tribes.\n\n' +
-                    '**1. Learn the History** — Understand the 1866 Reconstruction Treaties that granted Freedmen citizenship rights in all Five Tribes after the Civil War.\n\n' +
-                    '**2. Search the Dawes Rolls** — Between 1898-1914, the Dawes Commission enrolled over 23,000 Freedmen on separate rolls. Find your ancestor by surname and tribe.\n\n' +
-                    '**3. Review Freedmen Bureau Records** — Check labor contracts, marriage registers, and ration lists from the Bureau of Refugees, Freedmen, and Abandoned Lands (1865-1872).\n\n' +
-                    '**4. Understand Citizenship Status** — Cherokee Freedmen won full rights in the 2017 Nash ruling. Choctaw, Chickasaw, Creek, and Seminole Freedmen descendants continue to fight for recognition.\n\n' +
-                    '**5. Build Your Documentation** — Collect Dawes cards, enrollment jackets, census records, and land allotment documents to establish your lineage.\n\n' +
-                    '&#128161; *Start with Step 1 to begin your research. DNA alone cannot prove Freedmen heritage — paper records are essential.*' + srcHTML;
+                    'The Freedmen were formerly enslaved Black people held by the Five Civilized Tribes (Cherokee, Choctaw, Creek, Chickasaw, Seminole). After the Civil War, the **1866 Reconstruction Treaties** granted them citizenship rights.\n\n' +
+                    '**1. Learn the History** — The 1866 Treaties were negotiated between each tribe and the U.S. government. They required tribes to grant citizenship to their freed slaves. Start on the Video Learning Center\'s "1866 Treaties Explained" course.\n\n' +
+                    '**2. Search the Dawes Rolls (1898-1914)** — The Dawes Commission enrolled over 23,000 Freedmen on separate rolls from "by blood" members. Search by surname and tribe in the Dawes Rolls page. Each card contains: name, age, tribal affiliation, and family connections.\n\n' +
+                    '**3. Review Freedmen Bureau Records** — The Bureau of Refugees, Freedmen, and Abandoned Lands (1865-1872) created labor contracts, marriage registers, school records, and ration lists. Available at the National Archives (NARA) and FamilySearch.org.\n\n' +
+                    '**4. Request Enrollment Jackets** — Contact NARA Fort Worth (Record Group 75) for the full application file behind each Dawes card. These contain testimony, family history, and supporting documents.\n\n' +
+                    '**5. Understand Current Citizenship** — Cherokee Freedmen won full rights in the 2017 *Cherokee Nation v. Nash* ruling. Other tribes\' Freedmen descendants continue legal battles for recognition.\n\n' +
+                    '&#128161; *Start with Step 1. DNA alone cannot prove Freedmen heritage — paper records are essential. What tribe are you researching?*' + srcHTML;
             case 'citizenship':
                 return ctx + '**Tribal Citizenship — Step-by-Step Guide**\n\n' +
                     '**1. Identify Your Tribe** — Determine which of the Five Civilized Tribes your Freedmen ancestor belonged to (Cherokee, Choctaw, Creek, Chickasaw, or Seminole).\n\n' +
@@ -1155,12 +1201,12 @@ const BAO_Chatbot = {
             case 'records':
                 var dawes = (BAO_DATA.dawesRolls || []).length;
                 return ctx + '**Records Research — Step-by-Step Guide**\n\n' +
-                    '**1. Search the Dawes Rolls** — Our database has ' + dawes + ' entries searchable by name, tribe, and enrollment status. Start with your family surname.\n\n' +
-                    '**2. Check Freedmen Bureau Records** — Review labor contracts, marriage registers, and ration lists from the Bureau of Refugees, Freedmen, and Abandoned Lands (1865-1872).\n\n' +
-                    '**3. Review Tribal Census Records** — Examine pre-Dawes census rolls from all Five Civilized Tribes. These list family members, ages, and tribal districts.\n\n' +
-                    '**4. Research Land Allotments** — Find allotment records showing land parcels assigned to Freedmen in Indian Territory. Cross-reference with Dawes card numbers.\n\n' +
-                    '**5. Request Enrollment Jackets** — Contact the National Archives in Fort Worth, TX (Record Group 75) for the full application file behind each Dawes card.\n\n' +
-                    '&#128161; *Start with Step 1 — the Dawes Rolls are the foundation of all Freedmen genealogy research.*' + srcHTML;
+                    '**1. Search the Dawes Rolls** — This app has ' + dawes + ' entries searchable by name, tribe, and status. The Dawes Rolls (1898-1914) are the foundation of all Five Tribes Freedmen research. Each card shows: name, age, tribal affiliation, family connections, and roll number.\n\n' +
+                    '**2. Check Freedmen Bureau Records (1865-1872)** — The Bureau of Refugees, Freedmen, and Abandoned Lands documented labor contracts, marriages, school enrollment, and ration distributions. Available digitally on FamilySearch.org and at NARA.\n\n' +
+                    '**3. Review Tribal Census Records** — Pre-Dawes census rolls (1880s-1890s) list family members, ages, and tribal districts. These can confirm presence in Indian Territory before Dawes enrollment.\n\n' +
+                    '**4. Research Land Allotments** — After the Dawes Act, each enrolled member (including Freedmen) received a land allotment in Indian Territory. Cross-reference allotment records with Dawes card numbers for property documentation.\n\n' +
+                    '**5. Request Enrollment Jackets** — NARA Fort Worth (Record Group 75, Entry 7RA-46) holds the full application file for each Dawes enrollee. These contain testimony, family statements, and supporting evidence.\n\n' +
+                    '&#128161; *Start with Step 1. What family surname would you like to search?*' + srcHTML;
             case 'video':
                 var courses = (BAO_DATA.videoSlideshows || []).length;
                 return ctx + 'The Video Learning Center has:\n\n' +
@@ -1198,7 +1244,12 @@ const BAO_Chatbot = {
                     '• **Generate tribal checklists** for each nation\n\n' +
                     'Say "Quick Start Guide" for a full walkthrough.' + srcHTML;
             default:
-                return ctx + 'I can help with DNA, records, family tree, migration routes, and more. What interests you?' + srcHTML;
+                return ctx + 'I can help you with specific genealogy research. To give you the most accurate guidance, could you share:\n\n' +
+                    '• **What family surname** are you researching?\n' +
+                    '• **Which tribe** (Cherokee, Choctaw, Creek, Chickasaw, or Seminole)?\n' +
+                    '• **What time period** (e.g., 1890s, early 1900s)?\n' +
+                    '• **What location** (state or Indian Territory district)?\n\n' +
+                    'The more details you provide, the more specific my guidance will be. I never fabricate records or historical facts — I\'ll point you to verified sources.' + srcHTML;
         }
     },
 
