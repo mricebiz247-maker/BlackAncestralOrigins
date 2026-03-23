@@ -1536,16 +1536,25 @@ const BAO_Chatbot = {
                     '**5. Tribal Census Rolls (1880s-1890s)** — Pre-Dawes census rolls may list "' + fullName + '" in a specific tribal district, confirming presence before formal enrollment.' +
                     fnMatchNote + followUp + srcHTML;
             case 'surname':
-                // Extract the surname from the query
-                var surnameMatch = (q || '').match(/(?:my (?:last |sur)?name is|surname|last name|family name|about the name|about)\s+(\w[\w'-]*)/i);
-                var surname = surnameMatch ? surnameMatch[1].charAt(0).toUpperCase() + surnameMatch[1].slice(1).toLowerCase() : '';
-                // Fallback: grab last capitalized word from query
-                if (!surname || surname.length < 2) {
-                    var _words = (q || '').trim().split(/\s+/);
-                    for (var _wi = _words.length - 1; _wi >= 0; _wi--) {
-                        var _w = _words[_wi].replace(/[^a-zA-Z'-]/g, '');
-                        if (_w.length >= 3 && !/^(the|about|my|is|was|name|surname|last|family|tell|me|what|find|search|look)$/i.test(_w)) {
-                            surname = _w.charAt(0).toUpperCase() + _w.slice(1).toLowerCase();
+                // Extract surname: scan from END, skip filler words, prefer DB matches
+                var _fillers = /^(my|last|name|about|the|is|what|tell|me|research|does|mean|find|search|look|surname|family|for|a|an|of|in|on|was|are|do|can|you|i|help|know|how)$/i;
+                var _raw = (q || '').toLowerCase().replace(/[^a-z' -]/g, '').trim();
+                var _words = _raw.split(/\s+/);
+                var surname = '';
+                // Pass 1: scan from end, find first word that matches DB
+                var _db = (typeof BAO_DATA !== 'undefined' && BAO_DATA.freedmenSurnames) ? BAO_DATA.freedmenSurnames : {};
+                for (var _wi = _words.length - 1; _wi >= 0; _wi--) {
+                    var _w = _words[_wi].replace(/[^a-z'-]/g, '');
+                    if (_w.length < 2 || _fillers.test(_w)) continue;
+                    var _cap = _w.charAt(0).toUpperCase() + _w.slice(1).toLowerCase();
+                    if (_db[_cap]) { surname = _cap; break; }
+                }
+                // Pass 2: if no DB match, take last non-filler word
+                if (!surname) {
+                    for (var _wi2 = _words.length - 1; _wi2 >= 0; _wi2--) {
+                        var _w2 = _words[_wi2].replace(/[^a-z'-]/g, '');
+                        if (_w2.length >= 2 && !_fillers.test(_w2)) {
+                            surname = _w2.charAt(0).toUpperCase() + _w2.slice(1).toLowerCase();
                             break;
                         }
                     }
