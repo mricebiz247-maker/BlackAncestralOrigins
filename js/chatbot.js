@@ -1144,11 +1144,39 @@ const BAO_Chatbot = {
             this.showStepCompletionNotice();
             this.showChips(getIntentChips(intent, appState.currentPage));
         } else {
-            // Strict fallback with 3 page-contextual options
-            var pageOptions = this._getPageOptions();
-            this.addBotMessage(fallbackGreet + '\'re currently on ' + pageCtx + '.\n\nI can help with these topics:\n\n' + pageOptions + '\n\nOr ask me about Dawes Rolls, DNA testing, tribal citizenship, or any of our 56 topics.');
-            this.showStepCompletionNotice();
-            this.showChips(this._getPageChips());
+            // RESEARCH-FIRST FALLBACK: treat unknown input as potential research query
+            // Check if input looks like a name (1-3 words, no obvious commands)
+            var words = q.trim().split(/\s+/);
+            var looksLikeName = words.length <= 3 && words.every(function(w){ return /^[a-z'-]+$/i.test(w); }) && !/^(yes|no|ok|hi|hey|hello|thanks|thank|bye|quit|exit|stop)$/i.test(words[0]);
+
+            if (looksLikeName && words.length === 1 && words[0].length >= 3) {
+                // Single word, 3+ chars — treat as surname
+                var sResp = this._buildIntentResponse('surname', 'my last name is ' + q, pageCtx, fallbackGreet);
+                this.addBotMessage(sResp);
+                this.showStepCompletionNotice();
+                this.showChips(getIntentChips('surname', appState.currentPage));
+            } else if (looksLikeName && words.length >= 2) {
+                // Two+ words — treat as full name search
+                var fnResp = this._buildIntentResponse('fullname', q, pageCtx, fallbackGreet);
+                this.addBotMessage(fnResp);
+                this.showStepCompletionNotice();
+                this.showChips(getIntentChips('fullname', appState.currentPage));
+            } else {
+                // True unknown — still research-focused, never generic menu
+                var sources = getRelevantSources('records', appState.currentPage);
+                var extSources = getExternalSources('records');
+                var srcHTML = formatSourcesHTML(sources.concat(extSources));
+                var followUp = this._getFollowUpQuestions('records', q);
+                this.addBotMessage('I want to help you find exactly what you\'re looking for. To provide the most accurate genealogy guidance, I need a bit more context.\n\n' +
+                    '**Try providing:**\n' +
+                    '• A **full name** (e.g., "Michael Wilson") for an individual search\n' +
+                    '• A **surname** (e.g., "Wilson") for Dawes Roll and Census research\n' +
+                    '• A **tribe** (e.g., "Cherokee Freedmen") for tribal-specific records\n' +
+                    '• A **topic** (e.g., "DNA testing", "citizenship", "1866 Treaties")\n\n' +
+                    'Every response includes verified research sources and actionable steps — no generic answers.' + followUp + srcHTML);
+                this.showStepCompletionNotice();
+                this.showChips(['Search Dawes Rolls', 'Freedmen research', 'DNA & Heritage', 'My family tree']);
+            }
         }
     },
 
