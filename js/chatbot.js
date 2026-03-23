@@ -1264,9 +1264,9 @@ const BAO_Chatbot = {
                 var dawesMatches = (BAO_DATA.dawesRolls || []).filter(function(r){ return r.name && r.name.toLowerCase().indexOf(surname.toLowerCase()) > -1; });
                 var matchNote = dawesMatches.length > 0
                     ? '\n\n&#128269; **Found in this app:** ' + dawesMatches.length + ' Dawes Roll record' + (dawesMatches.length > 1 ? 's' : '') + ' matching "' + surname + '". Visit the Dawes Rolls page to view them.'
-                    : '\n\n&#128270; No exact matches for "' + surname + '" in our ' + dawesCount + ' local Dawes records, but many more exist at the National Archives.';
+                    : '\n\n&#128270; No exact match was found in this app\'s limited local dataset (' + dawesCount + ' records), but broader historical records at the National Archives may still contain relevant entries. A surname alone does not confirm or deny tribal affiliation — verification requires first names, relatives, location, and time period.';
                 return ctx + '**Surname Research: ' + surname + '**\n\n' +
-                    'The surname **' + surname + '** appears in both European American and African American records. In the context of Black Indigenous Freedmen genealogy, surnames were often taken from former slaveholders within the Five Civilized Tribes — making them key identifiers in Dawes Roll enrollment records (1898-1914).\n\n' +
+                    'The surname **' + surname + '** may appear in multiple historical records tied to the Five Civilized Tribes and Freedmen communities. In Freedmen genealogy, surnames were often taken from former slaveholders within the tribes — making them key identifiers in Dawes Roll enrollment records (1898-1914).\n\n' +
                     '**How to research this surname:**\n' +
                     '**1.** Search the Dawes Rolls index at the National Archives (NARA) for "' + surname + '" — filter by Freedmen rolls for all five tribes.\n' +
                     '**2.** Check U.S. Census records (1870, 1880, 1900, 1910) for families with this surname in Indian Territory / Oklahoma.\n' +
