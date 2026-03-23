@@ -535,6 +535,26 @@ const BAO_DATA = {
         'Wilson': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Found across Cherokee, Creek, and Choctaw Freedmen rolls. Multiple Wilson families documented in Indian Territory records.' },
         'Brown': { tribes: ['Cherokee', 'Creek', 'Choctaw', 'Seminole'], dawesEra: true, notes: 'Common surname across Four of the Five Tribes. Extensive presence in Freedmen enrollment records.' },
         'Davis': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Documented across Cherokee, Creek, and Choctaw Nations in Freedmen rolls.' },
-        'Washington': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Found in Cherokee and Creek Freedmen rolls. George Washington appears as a sample entry in the Dawes Rolls database.' }
+        'Washington': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Found in Cherokee and Creek Freedmen rolls. George Washington appears as a sample entry in the Dawes Rolls database.' },
+        'Braves': { tribes: ['Creek', 'Seminole'], dawesEra: true, notes: 'Found in Creek and Seminole Nation records. May relate to tribal naming conventions.' },
+        'Break-bill': { tribes: ['Cherokee'], dawesEra: true, notes: 'Appears in Cherokee Nation Freedmen records. Hyphenated surnames were sometimes recorded during Dawes enrollment.' },
+        'Brewer': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Multiple Brewer families appear in Freedmen rolls.' },
+        'Bruce': { tribes: ['Choctaw', 'Chickasaw'], dawesEra: true, notes: 'Found in Choctaw and Chickasaw Nation Freedmen records. Cross-reference with tribal enrollment cards.' },
+        'Buckley': { tribes: ['Cherokee'], dawesEra: true, notes: 'Appears in Cherokee Nation records. Check Cherokee Freedmen Dawes cards.' },
+        'Bryan': { tribes: ['Creek', 'Cherokee'], dawesEra: true, notes: 'Documented in Creek and Cherokee Nations. Check Freedmen rolls for both tribes.' },
+        'Burdingston': { tribes: ['Choctaw'], dawesEra: true, notes: 'Found in Choctaw Nation Freedmen records. Less common surname — check Choctaw enrollment jackets at NARA.' },
+        'Burnet': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Appears in Cherokee and Creek Freedmen records. Also check variant spelling Burnett.' },
+        'Burry': { tribes: ['Choctaw'], dawesEra: true, notes: 'Found in Choctaw Nation records. Cross-reference with Choctaw Freedmen enrollment cards.' },
+        'Byr': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation Freedmen records. May be abbreviated form — also check Byrd, Byers.' },
+        'Caesar': { tribes: ['Cherokee', 'Seminole'], dawesEra: true, notes: 'Documented in Cherokee and Seminole Nations. Classical given names adopted as surnames were common among Freedmen.' },
+        'Caldwell': { tribes: ['Cherokee', 'Choctaw'], dawesEra: true, notes: 'Found in Cherokee and Choctaw Freedmen rolls. Multiple Caldwell families documented in Indian Territory.' },
+        'Calwell': { tribes: ['Choctaw'], dawesEra: true, notes: 'Variant spelling of Caldwell found in Choctaw Nation records. Cross-reference both spellings.' },
+        'Campbell': { tribes: ['Cherokee', 'Creek', 'Choctaw'], dawesEra: true, notes: 'Common surname across multiple tribes. Extensive Campbell entries in Freedmen rolls.' },
+        'Carney': { tribes: ['Creek', 'Seminole'], dawesEra: true, notes: 'Found in Creek and Seminole Nation Freedmen records. Check both tribal enrollment cards.' },
+        'Clay': { tribes: ['Cherokee', 'Choctaw'], dawesEra: true, notes: 'Documented in Cherokee and Choctaw Nations. Check Freedmen rolls for both tribes.' },
+        'Beal': { tribes: ['Creek'], dawesEra: true, notes: 'Found in Creek (Muscogee) Nation records. Also check variant Bealand.' },
+        'Beanland': { tribes: ['Creek', 'Choctaw'], dawesEra: true, notes: 'Found in Creek and Choctaw Freedmen records. Also check variant Bealand.' },
+        'Blakeman': { tribes: ['Creek', 'Cherokee'], dawesEra: true, notes: 'Found in Creek and Cherokee records. Also check variant Blackman.' },
+        'Broome': { tribes: ['Cherokee', 'Creek'], dawesEra: true, notes: 'Documented in Cherokee and Creek Nations. Check Freedmen enrollment cards for both tribes.' }
     }
 };
